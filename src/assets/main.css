@@ -1,35 +1,57 @@
-@import './base.css';
+/* main.css 혹은 assets/main.css */
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========== 기본 설정 (Toss 느낌) ========== */
+
+html, body {
+  @apply bg-[#121212] text-[#F5F5F5] font-sans;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
 }
 
-a,
-.green {
+/* 링크 스타일 */
+a {
+  @apply text-white hover:text-blue-400 transition-colors duration-200;
   text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
+/* 버튼 공통 스타일 */
+button {
+  @apply focus:outline-none;
+  font-family: inherit;
+  font-size: 0.875rem;
 }
 
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
+/* 스크롤바 제거 (모바일 / 슬라이딩 탭용) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
+/* input, select 등 폼 요소 reset */
+input, button, select, textarea {
+  @apply bg-transparent border-none outline-none text-inherit;
+}
+
+/* 테이블 기본 스타일 */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+/* 페이지 전환 애니메이션용 */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
 }
