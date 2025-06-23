@@ -59,6 +59,8 @@
 </template>
 
 <script>
+import '../assets/StockRight.css';
+
 export default {
   name: 'StockRight',
   data() {
@@ -70,51 +72,6 @@ export default {
       indices: [
         {
           id: 1,
-          name: '나스닥',
-          value: 19447.41,
-          change: -98.86,
-          changePercent: -0.5,
-          changeType: 'value',
-          chartData: this.generateRandomData(20, 0.8) // 하락 추세
-        },
-        {
-          id: 2,
-          name: 'S&P 500',
-          value: 5967.84,
-          change: -13.03,
-          changePercent: -0.2,
-          changeType: 'value',
-          chartData: this.generateRandomData(20, 0.9) // 약간 하락
-        },
-        {
-          id: 3,
-          name: 'VIX',
-          value: 20.62,
-          change: -1.55,
-          changePercent: -6.9,
-          changeType: 'value',
-          chartData: this.generateRandomData(20, 0.7) // 변동성
-        },
-        {
-          id: 4,
-          name: '원달러',
-          value: 1377.00,
-          change: -2.6,
-          changePercent: -0.1,
-          changeType: 'value',
-          chartData: this.generateRandomData(20, 0.95) // 안정적
-        },
-        {
-          id: 5,
-          name: '달러 인덱스',
-          value: 98.70,
-          change: -0.2,
-          changePercent: -0.2,
-          changeType: 'value',
-          chartData: this.generateRandomData(20, 0.92)
-        },
-        {
-          id: 6,
           name: '코스피',
           value: 3021.84,
           change: 44.1,
@@ -123,14 +80,34 @@ export default {
           chartData: this.generateRandomData(20, 1.1) // 상승 추세
         },
         {
-          id: 7,
+          id: 2,
           name: '코스닥',
-          value: 791.53,
-          change: 9.02,
-          changePercent: 1.1,
+          value: 1377.00,
+          change: -2.6,
+          changePercent: -0.1,
           changeType: 'value',
-          chartData: this.generateRandomData(20, 1.05) // 약간 상승
-        }
+          chartData: this.generateRandomData(20, 0.95) // 안정적
+        },
+        {
+          id: 3,
+          name: '코스피200',
+          value: 1377.00,
+          change: -2.6,
+          changePercent: -0.1,
+          changeType: 'value',
+          chartData: this.generateRandomData(20, 0.95) // 안정적
+        },
+
+        {
+          id: 4,
+          name: '환율',
+          value: 98.70,
+          change: -0.2,
+          changePercent: -0.2,
+          changeType: 'value',
+          chartData: this.generateRandomData(20, 0.92)
+        },
+
       ]
     }
   },
@@ -186,177 +163,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.stock-right-container {
-  background-color: #1a1a1a;
-  color: white;
-  padding: 20px;
-  margin: 20px 0;
-  border-radius: 12px;
-  width: 300px;
-  height: fit-content;
-}
-
-.filter-tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #374151;
-  padding-bottom: 12px;
-}
-
-.filter-btn {
-  padding: 6px 12px;
-  background: transparent;
-  border: none;
-  color: #9ca3af;
-  cursor: pointer;
-  font-size: 14px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.filter-btn:hover {
-  color: white;
-  background: #374151;
-}
-
-.filter-btn.active {
-  color: white;
-  background: #374151;
-}
-
-.indices-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.index-item {
-  padding: 12px 0;
-  border-bottom: 1px solid #2d2d2d;
-}
-
-.index-item:last-child {
-  border-bottom: none;
-}
-
-.index-header {
-  margin-bottom: 8px;
-}
-
-.index-name {
-  font-size: 14px;
-  color: #9ca3af;
-  font-weight: 500;
-}
-
-.index-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.index-info {
-  flex: 1;
-}
-
-.index-value {
-  font-size: 16px;
-  font-weight: 600;
-  color: white;
-  margin-bottom: 4px;
-}
-
-.index-change {
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.index-change.positive {
-  color: #ef4444;
-}
-
-.index-change.negative {
-  color: #3b82f6;
-}
-
-.index-change.neutral {
-  color: #9ca3af;
-}
-
-.change-percent {
-  margin-left: 4px;
-}
-
-.chart-container {
-  width: 80px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-}
-
-.mini-chart {
-  width: 100%;
-  height: 100%;
-}
-
-.additional-info {
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid #374151;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.info-label {
-  font-size: 12px;
-  color: #3b82f6;
-  font-weight: 600;
-}
-
-.info-text {
-  font-size: 12px;
-  color: #9ca3af;
-  line-height: 1.4;
-}
-
-@media (max-width: 1200px) {
-  .stock-right-container {
-    width: 100%;
-    margin: 20px 0 0 0;
-  }
-
-  .indices-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 16px;
-  }
-
-  .index-item {
-    border: 1px solid #374151;
-    border-radius: 8px;
-    padding: 16px;
-    border-bottom: 1px solid #374151;
-  }
-}
-
-@media (max-width: 768px) {
-  .stock-right-container {
-    padding: 16px;
-  }
-
-  .indices-list {
-    grid-template-columns: 1fr;
-  }
-
-  .filter-tabs {
-    justify-content: center;
-  }
-}
-</style>
