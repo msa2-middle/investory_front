@@ -43,6 +43,7 @@
           <template v-if="authStore.token">
             <span class="welcome-text">{{ authStore.userName }}님</span>
             <button class="btn-login" @click="logout">로그아웃</button>
+            <Alarm />
           </template>
           <template v-else>
             <button class="btn-signup" @click="goToSignup">회원가입</button>
@@ -59,6 +60,7 @@
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import Alarm from '@/components/Alarm.vue'
 
 const authStore = useAuthStore() // 전역 로그인 상태 (Pinia)
 const router = useRouter() // 라우터 이동 기능 사용
