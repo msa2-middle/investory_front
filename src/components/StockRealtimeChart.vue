@@ -2,8 +2,8 @@
   <div class="stock-chart-container">
     <div class="chart-header">
       <div class="time-info">
-        <h2 class="time-title">실시간 차트</h2>
-        <span class="current-time">어제 {{ currentTime }} 기준</span>
+        <h2 class="time-title">순위 차트</h2>
+        <!-- <span class="current-time">어제 {{ currentTime }} 기준</span> -->
       </div>
 
       <div class="chart-tabs">
@@ -26,7 +26,7 @@
     </div>
 
     <div class="time-filter">
-      <span class="filter-label">실시간</span>
+      <!-- <span class="filter-label">실시간</span> -->
       <!-- <div class="time-buttons">
         <button
           v-for="period in timePeriods"

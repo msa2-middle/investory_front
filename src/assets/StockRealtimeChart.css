@@ -11,17 +11,20 @@
 
 .chart-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 16px;
+  flex-direction: column;
 }
 
 .time-info {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+  text-align: center;
 }
 
 .time-title {
@@ -33,12 +36,15 @@
 .current-time {
   font-size: 14px;
   color: #9ca3af;
+  margin-top: 3px;
 }
 
 .chart-tabs {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  justify-content: center;
+  margin: 0 auto;
 }
 
 .tab-btn {

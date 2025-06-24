@@ -1,26 +1,17 @@
 <template>
   <div id="app">
     <StockHeader />
-    <main class="main-content">
-      <div class="content-layout">
-        <StockRealtimeChart />
-        <StockRight />
-      </div>
-    </main>
+    <router-view />
   </div>
 </template>
 
 <script>
 import StockHeader from './components/StockHeader.vue'
-import StockRealtimeChart from './components/StockRealtimeChart.vue'
-import StockRight from './components/StockRight.vue'
 
 export default {
   name: 'App',
   components: {
-    StockHeader,
-    StockRealtimeChart,
-    StockRight
+    StockHeader
   }
 }
 </script>
