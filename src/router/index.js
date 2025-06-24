@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 import SignupView from '../views/SignupView.vue'
 import MyPageView from '../views/MyPageView.vue'
+import StockInfoView from '../views/StockInfoView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -26,6 +27,11 @@ const router = createRouter({
       path: '/mypage',
       name: 'mypage',
       component: MyPageView,
+    },
+    {
+      path: '/stock-info/:mkscShrnIscd',
+      name: 'stock-info',
+      component: StockInfoView
     },
     {
       path: '/about',

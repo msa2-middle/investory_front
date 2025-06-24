@@ -11,28 +11,13 @@
         <button type="submit" class="signup-btn">회원가입</button>
       </form>
 
-      <!-- 소셜 가입 -->
-      <div class="social-buttons">
-        <button class="social google">
-          <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" />
-          구글로 가입
-        </button>
-        <button class="social naver">
-          <img src="@/assets/icons/naver.png" alt="네이버" />
-          네이버로 가입
-        </button>
-        <button class="social kakao">
-          <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_small.png" alt="Kakao" />
-          카카오로 가입
-        </button>
-      </div>
     </div>
   </div>
 </template>
 
 <script>
 import { ref } from 'vue'
-import axios from 'axios'
+import api from '@/api/api'
 
 export default {
   setup() {
@@ -45,7 +30,7 @@ export default {
 
     async function submitForm() {
       try {
-        const response = await axios.post('http://localhost:8091/users/signup', form.value)
+        const response = await api.post('/users/signup', form.value)
         console.log('회원가입 성공:', response.data)
         alert('회원가입 성공!')
       } catch (error) {
