@@ -43,9 +43,8 @@
         <div class="header-item">거래대금</div>
       </div>
 
-      <div class="stock-items">
-        <div v-if="isLoading" class="loading-message">데이터를 불러오는 중입니다...</div>
-        <div v-else-if="error" class="error-message">
+      <div class="stock-items" :class="{ 'table-flash': tableFlash }">
+        <div v-if="error" class="error-message">
           데이터를 불러오는데 실패했습니다: {{ error }}
         </div>
         <div v-else-if="stockData.length === 0" class="no-data-message">
@@ -144,6 +143,8 @@ export default {
       currentPage: 0,
       pageSize: 10,
       timer: null,
+      dataTimer: null,
+      tableFlash: false,
     };
   },
 
@@ -185,9 +186,11 @@ export default {
     this.updateCurrentTime();
     this.timer = setInterval(this.updateCurrentTime, 60000);
     this.fetchStockData(this.activeTab, 0);
+    this.startDataTimer();
   },
   beforeUnmount() {
     if (this.timer) clearInterval(this.timer);
+    if (this.dataTimer) clearInterval(this.dataTimer);
   },
   methods: {
     updateCurrentTime() {
@@ -195,6 +198,12 @@ export default {
       const hh = String(now.getHours()).padStart(2, '0');
       const mm = String(now.getMinutes()).padStart(2, '0');
       this.currentTime = `${hh}:${mm}`;
+    },
+    startDataTimer() {
+      if (this.dataTimer) clearInterval(this.dataTimer);
+      this.dataTimer = setInterval(() => {
+        this.fetchStockData(this.activeTab, this.currentPage);
+      }, 5000);
     },
     async fetchStockData(tabId, page = 0) {
       this.isLoading = true;
@@ -206,6 +215,14 @@ export default {
         this.totalPages = response.data.totalPages || 1;
         this.currentPage = response.data.number || 0;
         this.pageSize = response.data.size || 10;
+        // 테이블 플래시 효과
+        this.tableFlash = false;
+        this.$nextTick(() => {
+          this.tableFlash = true;
+          setTimeout(() => {
+            this.tableFlash = false;
+          }, 500);
+        });
       } catch (err) {
         console.error('API 호출 오류:', err);
         this.error = '데이터를 불러오는데 실패했습니다.';
@@ -218,6 +235,7 @@ export default {
     setActiveTab(tabId) {
       this.activeTab = tabId;
       this.fetchStockData(tabId, 0);
+      this.startDataTimer();
     },
 
     setActivePeriod(period) {
@@ -257,7 +275,18 @@ export default {
     goToPage(page) {
       if (page < 0 || page >= this.totalPages) return;
       this.fetchStockData(this.activeTab, page);
+      this.startDataTimer();
     }
   }
 }
 </script>
+
+<style>
+.table-flash {
+  animation: table-flash-anim 0.5s;
+}
+@keyframes table-flash-anim {
+  0% { background: #2a2a2a; }
+  100% { background: transparent; }
+}
+</style>
