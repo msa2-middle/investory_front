@@ -1,9 +1,12 @@
 <template>
   <div id="app">
     <StockHeader />
-    <router-view />
+    <main class="main-content">
+      <router-view />
+    </main>
   </div>
 </template>
+
 
 <script>
 import StockHeader from './components/StockHeader.vue'
