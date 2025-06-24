@@ -3,7 +3,7 @@
     <div class="chart-header">
       <div class="time-info">
         <h2 class="time-title">순위 차트</h2>
-        <!-- <span class="current-time">어제 {{ currentTime }} 기준</span> -->
+        <span class="current-time">어제 {{ currentTime }} 기준</span>
       </div>
 
       <div class="chart-tabs">
@@ -63,7 +63,7 @@
         >
           <div class="stock-rank">
             <button class="heart-btn">♡</button>
-            <span class="rank">{{ index + 1 }}</span>
+            <span class="rank">{{ index + 1 + currentPage * pageSize }}</span>
           </div>
 
           <div class="stock-info">
@@ -78,7 +78,7 @@
           </div>
 
           <div :class="['stock-change', getChangeClass(stock.chgrate)]">
-            {{ stock.chgrate > 0 ? '+' : '' }}{{ stock.chgrate }}%
+            {{ stock.chgrate > 0 ? '+' : '' }}{{ Number(stock.chgrate).toFixed(2) }}%
           </div>
 
           <div class="stock-volume">
@@ -87,18 +87,34 @@
         </div>
       </div>
 
-      <div class="load-more">
-        <div class="notice">
-          호재 최근 1년 사이 가장 높은 애널리스트 목표주가가 나왔어요. 📈
-        </div>
+      <div class="load-more" v-if="totalPages > 1">
         <div class="pagination">
-          <button class="page-btn" v-for="page in 5" :key="page" :class="{ active: page === 1 }">
+          <button class="nav-btn" :disabled="currentPage === 0" @click="goToPage(currentPage - 1)">‹</button>
+          <button
+            class="page-btn"
+            :class="{ active: currentPage === 0 }"
+            @click="goToPage(0)"
+          >1</button>
+          <span v-if="showLeftEllipsis" class="pagination-dots">...</span>
+          <button
+            v-for="page in visiblePages"
+            :key="page"
+            class="page-btn"
+            :class="{ active: currentPage === page - 1 }"
+            @click="goToPage(page - 1)"
+          >
             {{ page }}
           </button>
-          <span class="pagination-dots">...</span>
-          <button class="page-btn">10</button>
-          <button class="nav-btn">‹</button>
-          <button class="nav-btn">›</button>
+          <span v-if="showRightEllipsis" class="pagination-dots">...</span>
+          <button
+            v-if="totalPages > 1"
+            class="page-btn"
+            :class="{ active: currentPage === totalPages - 1 }"
+            @click="goToPage(totalPages - 1)"
+          >
+            {{ totalPages }}
+          </button>
+          <button class="nav-btn" :disabled="currentPage === totalPages - 1" @click="goToPage(currentPage + 1)">›</button>
         </div>
       </div>
     </div>
@@ -127,20 +143,59 @@ export default {
       timePeriods: ['1일', '1주일', '1개월', '3개월', '6개월', '1년'],
       stockData: [],
       isLoading: false,
-      error: null
+      error: null,
+      totalPages: 1,
+      currentPage: 0,
+      pageSize: 10,
     };
   },
+  computed: {
+    visiblePages() {
+      // 항상 1, 마지막 페이지는 별도 표시. 중간만 반환
+      const pages = [];
+      if (this.totalPages <= 7) {
+        // 전체 페이지가 7 이하라면 모두 표시
+        for (let i = 2; i < this.totalPages; i++) pages.push(i);
+        return pages;
+      }
+      // 현재 페이지(1-indexed)
+      const cur = this.currentPage + 1;
+      let start = Math.max(2, cur - 2);
+      let end = Math.min(this.totalPages - 1, cur + 2);
+      // 앞쪽이 부족하면 뒤쪽을 더 보여줌
+      if (cur <= 4) {
+        start = 2;
+        end = 5;
+      }
+      // 뒤쪽이 부족하면 앞쪽을 더 보여줌
+      if (cur >= this.totalPages - 3) {
+        start = this.totalPages - 4;
+        end = this.totalPages - 1;
+      }
+      for (let i = start; i <= end; i++) pages.push(i);
+      return pages;
+    },
+    showLeftEllipsis() {
+      return this.totalPages > 7 && this.currentPage + 1 > 4;
+    },
+    showRightEllipsis() {
+      return this.totalPages > 7 && this.currentPage + 1 < this.totalPages - 3;
+    }
+  },
   mounted() {
-    this.fetchStockData(this.activeTab);
+    this.fetchStockData(this.activeTab, 0);
   },
   methods: {
-    async fetchStockData(tabId) {
+    async fetchStockData(tabId, page = 0) {
       this.isLoading = true;
       this.error = null;
       try {
         const baseUrl = 'http://localhost:8091/main'; // 또는 '/main' (프록시 설정에 따라)
-        const response = await axios.get(`${baseUrl}/${tabId}`);
-        this.stockData = response.data;
+        const response = await axios.get(`${baseUrl}/${tabId}?page=${page}`);
+        this.stockData = response.data.content || [];
+        this.totalPages = response.data.totalPages || 1;
+        this.currentPage = response.data.number || 0;
+        this.pageSize = response.data.size || 10;
       } catch (err) {
         console.error('API 호출 오류:', err);
         this.error = '데이터를 불러오는데 실패했습니다.';
@@ -152,7 +207,7 @@ export default {
 
     setActiveTab(tabId) {
       this.activeTab = tabId;
-      this.fetchStockData(tabId);
+      this.fetchStockData(tabId, 0);
     },
 
     setActivePeriod(period) {
@@ -187,6 +242,11 @@ export default {
       if (numChgrate > 0) return 'positive';
       if (numChgrate < 0) return 'negative';
       return 'neutral';
+    },
+
+    goToPage(page) {
+      if (page < 0 || page >= this.totalPages) return;
+      this.fetchStockData(this.activeTab, page);
     }
   }
 }

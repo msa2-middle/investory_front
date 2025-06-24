@@ -7,7 +7,9 @@ import StockRight from '../components/StockRight.vue'
   <main class="main-content">
     <div class="content-layout">
       <StockRealtimeChart />
-      <StockRight />
+      <div class="stock-right-wrapper">
+        <StockRight />
+      </div>
     </div>
   </main>
 </template>
@@ -34,6 +36,10 @@ import StockRight from '../components/StockRight.vue'
   flex: 0 0 300px;
 }
 
+.stock-right-wrapper {
+  margin-top: 130px;
+}
+
 @media (max-width: 1200px) {
   .content-layout {
     flex-direction: column;
@@ -45,6 +51,9 @@ import StockRight from '../components/StockRight.vue'
 
   .main-content {
     padding: 0 16px;
+  }
+  .stock-right-wrapper {
+    margin-top: 20px;
   }
 }
 
