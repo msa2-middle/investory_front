@@ -29,6 +29,8 @@
 <script>
 import { ref } from 'vue'
 import userApi from '@/api/userApi'
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 
 export default {
   setup() {
@@ -37,15 +39,16 @@ export default {
       password: '',
     })
 
+    const authStore = useAuthStore()
+    const router = useRouter()
+
     async function login() {
       try {
         const response = await userApi.login(form.value)
         const token = response.data.accessToken
-        // 토큰 저장
-        localStorage.setItem('accessToken', token)
+        authStore.setToken(token)
         alert('로그인 성공!')
-        console.log('로그인 성공:', response.data)
-        // 이후 페이지 이동 등 처리 예정
+        router.push('/mypage')
       } catch (error) {
         console.error('로그인 실패:', error)
         alert('로그인 실패')

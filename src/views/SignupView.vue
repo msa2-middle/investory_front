@@ -18,6 +18,7 @@
 <script>
 import { ref } from 'vue'
 import api from '@/api/api'
+import { useRouter } from 'vue-router'
 
 export default {
   setup() {
@@ -28,11 +29,14 @@ export default {
       phone: '',
     })
 
+    const router = useRouter()
+
     async function submitForm() {
       try {
         const response = await api.post('/users/signup', form.value)
         console.log('회원가입 성공:', response.data)
         alert('회원가입 성공!')
+        router.push('/login')
       } catch (error) {
         console.error('회원가입 실패:', error)
         alert('회원가입 실패')
