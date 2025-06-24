@@ -3,7 +3,7 @@
     <div class="chart-header">
       <div class="time-info">
         <h2 class="time-title">순위 차트</h2>
-        <span class="current-time">어제 {{ currentTime }} 기준</span>
+        <span class="current-time">현재 {{ currentTime }} 기준</span>
       </div>
 
       <div class="chart-tabs">
@@ -17,12 +17,7 @@
         </button>
       </div>
 
-      <!-- <div class="chart-actions">
-        <button class="action-btn">
-          <span class="icon">📊</span>
-          투자위험 주식 숨기기
-        </button>
-      </div> -->
+
     </div>
 
     <div class="time-filter">
@@ -56,6 +51,7 @@
         <div v-else-if="stockData.length === 0" class="no-data-message">
           해당 랭킹 데이터가 없습니다.
         </div>
+
         <div
           v-for="(stock, index) in stockData"
           :key="stock.code"
@@ -130,7 +126,7 @@ export default {
   name: 'StockRealtimeChart',
   data() {
     return {
-      currentTime: '08:50',
+      currentTime: '',
       activeTab: 'volume-rank',
       activePeriod: '1일',
       tabs: [
@@ -147,8 +143,11 @@ export default {
       totalPages: 1,
       currentPage: 0,
       pageSize: 10,
+      timer: null,
     };
   },
+
+
   computed: {
     visiblePages() {
       // 항상 1, 마지막 페이지는 별도 표시. 중간만 반환
@@ -183,9 +182,20 @@ export default {
     }
   },
   mounted() {
+    this.updateCurrentTime();
+    this.timer = setInterval(this.updateCurrentTime, 60000);
     this.fetchStockData(this.activeTab, 0);
   },
+  beforeUnmount() {
+    if (this.timer) clearInterval(this.timer);
+  },
   methods: {
+    updateCurrentTime() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      this.currentTime = `${hh}:${mm}`;
+    },
     async fetchStockData(tabId, page = 0) {
       this.isLoading = true;
       this.error = null;
