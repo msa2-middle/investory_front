@@ -1,8 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import LoginView from '../views/LoginView.vue'
-import SignupView from '../views/SignupView.vue'
-import MyPageView from '../views/MyPageView.vue'
+
 import StockInfoView from '../views/StockInfo/StockInfoView.vue'
 import ProductInfoView from '@/views/StockInfo/ProductInfoView.vue'
 import BalanceSheetView from '@/views/StockInfo/BalanceSheetView.vue'
@@ -11,6 +9,9 @@ import FinancialRatioView from '@/views/StockInfo/FinancialRatioView.vue'
 import ProfitRatioView from '@/views/StockInfo/ProfitRatioView.vue'
 import StabilityRatioView from '@/views/StockInfo/StabilityRatioView.vue'
 import GrowthRatioView from '@/views/StockInfo/GrowthRatioView.vue'
+import LoginView from '../views/user/LoginView.vue'
+import SignupView from '../views/user/SignupView.vue'
+import MyPageView from '../views/user/MyPageView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

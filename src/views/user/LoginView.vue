@@ -1,51 +1,72 @@
 <template>
-  <div class="signup-page">
-    <div class="signup-card">
-      <h2>회원가입</h2>
-      <form @submit.prevent="submitForm">
+  <div class="login-page">
+    <div class="login-card">
+      <h2>로그인</h2>
+      <form @submit.prevent="login">
         <input type="email" v-model="form.email" placeholder="이메일" required />
         <input type="password" v-model="form.password" placeholder="비밀번호" required />
-        <input type="text" v-model="form.name" placeholder="이름" required />
-        <input type="text" v-model="form.phone" placeholder="전화번호" />
-
-        <button type="submit" class="signup-btn">회원가입</button>
+        <button type="submit" class="login-btn">로그인</button>
       </form>
 
+      <div class="social-buttons">
+        <button class="social google">
+          <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" />
+          구글로 로그인
+        </button>
+        <button class="social naver">
+          <img src="@/assets/icons/naver.png" alt="네이버" />
+          네이버로 로그인
+        </button>
+        <button class="social kakao">
+          <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_small.png" alt="Kakao" />
+          카카오로 로그인
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import { ref } from 'vue'
-import api from '@/api/api'
+import userApi from '@/api/userApi'
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 
 export default {
   setup() {
     const form = ref({
       email: '',
       password: '',
-      name: '',
-      phone: '',
     })
 
-    async function submitForm() {
+    const authStore = useAuthStore()
+    const router = useRouter()
+
+    async function login() {
       try {
-        const response = await api.post('/users/signup', form.value)
-        console.log('회원가입 성공:', response.data)
-        alert('회원가입 성공!')
+        const response = await userApi.login(form.value)
+        const token = response.data.accessToken
+        authStore.setToken(token)
+        authStore.setUserName(response.data.name)
+
+        localStorage.setItem('accessToken', token)
+        localStorage.setItem('userName', response.data.name)
+
+        alert('로그인 성공!')
+        router.push('/mypage')
       } catch (error) {
-        console.error('회원가입 실패:', error)
-        alert('회원가입 실패')
+        console.error('로그인 실패:', error)
+        alert('로그인 실패')
       }
     }
 
-    return { form, submitForm }
+    return { form, login }
   },
 }
 </script>
 
 <style scoped>
-.signup-page {
+.login-page {
   height: calc(100vh - 100px);
   padding-top: 80px;
   display: flex;
@@ -54,7 +75,7 @@ export default {
   background: radial-gradient(circle at top, #0f1624, #000000 80%);
 }
 
-.signup-card {
+.login-card {
   background-color: #101522;
   padding: 40px 30px;
   border-radius: 16px;
@@ -65,12 +86,12 @@ export default {
   text-align: center;
 }
 
-.signup-card h2 {
+.login-card h2 {
   margin-bottom: 30px;
   font-size: 28px;
 }
 
-.signup-card input {
+.login-card input {
   width: 100%;
   padding: 15px;
   margin-bottom: 20px;
@@ -81,11 +102,11 @@ export default {
   font-size: 16px;
 }
 
-.signup-card input::placeholder {
+.login-card input::placeholder {
   color: #bbbbbb;
 }
 
-.signup-btn {
+.login-btn {
   width: 100%;
   padding: 15px;
   border: none;
@@ -99,7 +120,7 @@ export default {
   transition: 0.3s;
 }
 
-.signup-btn:hover {
+.login-btn:hover {
   background: linear-gradient(135deg, #2563eb, #7c3aed);
 }
 
