@@ -41,6 +41,7 @@
       <div class="header-right">
         <div class="auth-buttons">
           <template v-if="authStore.token">
+            <span class="welcome-text">{{ authStore.userName }}님</span>
             <button class="btn-login" @click="logout">로그아웃</button>
           </template>
           <template v-else>
@@ -59,12 +60,15 @@ import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 
-const authStore = useAuthStore()
-const router = useRouter()
+const authStore = useAuthStore() // 전역 로그인 상태 (Pinia)
+const router = useRouter() // 라우터 이동 기능 사용
 
+
+// 검색창 상태 (반응형 상태)
 const searchQuery = ref('')
 const isSearchFocused = ref(false)
 
+// 검색창 이벤트
 function onSearchFocus() {
   isSearchFocused.value = true
 }
@@ -73,6 +77,7 @@ function onSearchBlur() {
   isSearchFocused.value = false
 }
 
+// 로그아웃 (스토어 초기화 + 페이지 이동)
 function logout() {
   authStore.clearToken()
   router.push('/login')
@@ -89,6 +94,12 @@ function goToSignup() {
 
 
 <style scoped>
+.welcome-text {
+  margin-right: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  color: #ffffff;
+}
 .stock-header {
   background-color: #1a1a1a;
   color: white;

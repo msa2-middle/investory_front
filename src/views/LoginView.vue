@@ -47,6 +47,11 @@ export default {
         const response = await userApi.login(form.value)
         const token = response.data.accessToken
         authStore.setToken(token)
+        authStore.setUserName(response.data.name)
+
+        localStorage.setItem('accessToken', token)
+        localStorage.setItem('userName', response.data.name)
+
         alert('로그인 성공!')
         router.push('/mypage')
       } catch (error) {
