@@ -82,7 +82,7 @@
           </div>
 
           <div class="stock-volume">
-            {{ formatVolume(stock.tradeAmt) }}원
+            {{ formatVolume(stock.trade_amt) }}원
           </div>
         </div>
       </div>

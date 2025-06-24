@@ -137,13 +137,15 @@
   width: 100%;
 }
 
+/* 컬럼 헤더 */
 .list-header {
   display: grid;
-  grid-template-columns: 80px 200px 120px 120px 150px;
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid #374151;
-  margin-bottom: 8px;
+  grid-template-columns: 100px 200px 120px 90px 100px;
+  gap: 20px;
+  padding: 12px 0 16px 0;
+  border-bottom: 2px solid;
+  border-image: linear-gradient(to right, transparent, #4b5563, transparent) 1;
+  margin-bottom: 12px;
   margin-left: 6.0cm;
 }
 
@@ -170,10 +172,11 @@
   width: 100%;
 }
 
+/* 종목 데이터 */
 .stock-item {
   display: grid;
-  grid-template-columns: 80px 200px 120px 120px 150px;
-  gap: 16px;
+  grid-template-columns: 80px 200px 120px 120px 160px;
+  gap: 20px;
   padding: 12px 0;
   align-items: center;
   border-radius: 8px;
@@ -205,6 +208,7 @@
 .rank {
   font-weight: 600;
   color: white;
+  padding-left: 35px;
 }
 
 .stock-info {
@@ -260,6 +264,8 @@
   text-align: right;
   color: #9ca3af;
   font-size: 14px;
+  padding-right: 80px;
+  min-width: 120px;
 }
 
 .load-more {
