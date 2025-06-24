@@ -11,17 +11,20 @@
 
 .chart-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 16px;
+  flex-direction: column;
 }
 
 .time-info {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+  text-align: center;
 }
 
 .time-title {
@@ -33,12 +36,15 @@
 .current-time {
   font-size: 14px;
   color: #9ca3af;
+  margin-top: 3px;
 }
 
 .chart-tabs {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  justify-content: center;
+  margin: 0 auto;
 }
 
 .tab-btn {
@@ -131,13 +137,15 @@
   width: 100%;
 }
 
+/* 컬럼 헤더 */
 .list-header {
   display: grid;
-  grid-template-columns: 80px 200px 120px 120px 150px;
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid #374151;
-  margin-bottom: 8px;
+  grid-template-columns: 100px 200px 120px 90px 100px;
+  gap: 20px;
+  padding: 12px 0 16px 0;
+  border-bottom: 2px solid;
+  border-image: linear-gradient(to right, transparent, #4b5563, transparent) 1;
+  margin-bottom: 12px;
   margin-left: 6.0cm;
 }
 
@@ -164,10 +172,11 @@
   width: 100%;
 }
 
+/* 종목 데이터 */
 .stock-item {
   display: grid;
-  grid-template-columns: 80px 200px 120px 120px 150px;
-  gap: 16px;
+  grid-template-columns: 80px 200px 120px 120px 160px;
+  gap: 20px;
   padding: 12px 0;
   align-items: center;
   border-radius: 8px;
@@ -199,6 +208,7 @@
 .rank {
   font-weight: 600;
   color: white;
+  padding-left: 35px;
 }
 
 .stock-info {
@@ -254,6 +264,8 @@
   text-align: right;
   color: #9ca3af;
   font-size: 14px;
+  padding-right: 80px;
+  min-width: 120px;
 }
 
 .load-more {
