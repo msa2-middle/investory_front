@@ -1,3 +1,4 @@
+<!--  2. 주식 기본 정보 -->
 <template>
   <div class="stock-info">
     <h2>종목 기본 정보</h2>
@@ -30,7 +31,7 @@ const loading = ref(true)
 
 async function fetchStockInfo() {
   try {
-    const response = await stockApi.getStockInfo(route.params.mkscShrnIscd)
+    const response = await stockApi.getStockInfo(route.params.stockId)
     stockInfo.value = response.data
   } catch (error) {
     console.error('종목 정보 조회 실패:', error)
@@ -50,7 +51,7 @@ onMounted(fetchStockInfo)
   background: #101522;
   color: white;
   border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   text-align: left;
 }
 </style>

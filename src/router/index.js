@@ -1,9 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+
+import StockInfoView from '../views/StockInfo/StockInfoView.vue'
+import ProductInfoView from '@/views/StockInfo/ProductInfoView.vue'
+import BalanceSheetView from '@/views/StockInfo/BalanceSheetView.vue'
+import IncomeStatementView from '@/views/StockInfo/IncomeStatementView.vue'
+import FinancialRatioView from '@/views/StockInfo/FinancialRatioView.vue'
+import ProfitRatioView from '@/views/StockInfo/ProfitRatioView.vue'
+import StabilityRatioView from '@/views/StockInfo/StabilityRatioView.vue'
+import GrowthRatioView from '@/views/StockInfo/GrowthRatioView.vue'
 import LoginView from '../views/user/LoginView.vue'
 import SignupView from '../views/user/SignupView.vue'
 import MyPageView from '../views/user/MyPageView.vue'
-import StockInfoView from '../views/StockInfoView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -18,20 +26,55 @@ const router = createRouter({
       name: 'login',
       component: LoginView,
     },
-        {
+    {
       path: '/signup',
       name: 'signup',
       component: SignupView,
     },
-        {
+    {
       path: '/mypage',
       name: 'mypage',
       component: MyPageView,
     },
     {
-      path: '/stock-info/:mkscShrnIscd',
-      name: 'stock-info',
-      component: StockInfoView
+      path: '/stock/:stockId/stock-info',
+      name: 'stockInfo',
+      component: StockInfoView,
+    },
+    {
+      path: '/stock/:stockId/product-info',
+      name: 'productInfo',
+      component: ProductInfoView,
+    },
+    {
+      path: '/stock/:stockId/balance-sheet',
+      name: 'balanceSheet',
+      component: BalanceSheetView,
+    },
+    {
+      path: '/stock/:stockId/income-statement',
+      name: 'incomeStatement',
+      component: IncomeStatementView,
+    },
+    {
+      path: '/stock/:stockId/financial-ratio',
+      name: 'financialRatio',
+      component: FinancialRatioView,
+    },
+    {
+      path: '/stock/:stockId/profitability-ratio',
+      name: 'profitabilityRatio',
+      component: ProfitRatioView,
+    },
+    {
+      path: '/stock/:stockId/stability-ratio',
+      name: 'stabilityRatio',
+      component: StabilityRatioView,
+    },
+    {
+      path: '/stock/:stockId/growth-ratio',
+      name: 'growthRatio',
+      component: GrowthRatioView,
     },
     {
       path: '/about',
