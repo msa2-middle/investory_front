@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-
 import StockInfoView from '../views/StockInfo/StockInfoView.vue'
 import ProductInfoView from '@/views/StockInfo/ProductInfoView.vue'
 import BalanceSheetView from '@/views/StockInfo/BalanceSheetView.vue'
@@ -9,9 +8,11 @@ import FinancialRatioView from '@/views/StockInfo/FinancialRatioView.vue'
 import ProfitRatioView from '@/views/StockInfo/ProfitRatioView.vue'
 import StabilityRatioView from '@/views/StockInfo/StabilityRatioView.vue'
 import GrowthRatioView from '@/views/StockInfo/GrowthRatioView.vue'
-import LoginView from '../views/user/LoginView.vue'
-import SignupView from '../views/user/SignupView.vue'
-import MyPageView from '../views/user/MyPageView.vue'
+import LoginView from '@/views/user/LoginView.vue'
+import SignupView from '@/views/user/SignupView.vue'
+import MyPageView from '@/views/user/MyPageView.vue'
+import RedirectView from '@/views/user/RedirectView.vue'
+import PasswordResetView from '@/views/user/PasswordResetView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -25,6 +26,16 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginView,
+    },
+    {
+      path: '/oauth-success',
+      name: 'RedirectView',
+      component: RedirectView
+    },
+    {
+      path: '/password-reset',
+      name: 'passwordReset',
+      component: PasswordResetView
     },
     {
       path: '/signup',
