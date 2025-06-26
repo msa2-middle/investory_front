@@ -14,6 +14,7 @@ import LoginView from '../views/user/LoginView.vue'
 import SignupView from '../views/user/SignupView.vue'
 import MyPageView from '../views/user/MyPageView.vue'
 import StockLayout from '@/views/StockInfo/StockLayout.vue'
+import PostDetailView from '@/views/post/PostDetailView.vue'
 
 const PriceView = { template: '<div style="text-align:center;padding:40px 0;font-size:1.5rem;">가격 차트/정보 영역(임시)</div>' }
 
@@ -43,7 +44,7 @@ const router = createRouter({
       component: MyPageView,
     },
 
-    // Stock 
+    // Stock
     {
       path: '/stock/:stockId',
       component: StockLayout,
@@ -95,6 +96,11 @@ const router = createRouter({
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () => import('../views/AboutView.vue'),
+    },
+    {
+      path: '/community/posts/:postId',
+      name: 'postDetail',
+      component: PostDetailView,
     },
   ],
 })

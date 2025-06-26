@@ -18,7 +18,7 @@
     <!-- 게시글 목록 -->
     <div v-else class="post-list">
       <div v-if="posts.length === 0" class="no-posts">등록된 글이 없습니다.</div>
-      <div v-for="post in posts" :key="post.id" class="post-item" @click="openPost(post)">
+      <div v-for="post in posts" :key="post.postId" class="post-item" @click="openPost(post)">
         <div class="post-title">{{ post.title }}</div>
         <div class="post-meta">{{ formatDate(post.createdAt) }}</div>
         <div class="post-like">
@@ -34,8 +34,9 @@
       </div>
     </div>
 
-    <!-- 게시글 상세 모달 -->
-    <div v-if="selectedPost" class="modal-overlay" @click.self="selectedPost = null">
+
+    <!-- 게시글 상세 모달 방식  -->
+    <!-- <div v-if="selectedPost" class="modal-overlay" @click.self="selectedPost = null">
       <div class="modal-content">
         <h3>{{ selectedPost.title }}</h3>
         <div class="modal-date">{{ formatDate(selectedPost.createdAt) }}</div>
@@ -52,16 +53,19 @@
         </div>
         <button @click="selectedPost = null">닫기</button>
       </div>
-    </div>
+    </div> -->
+
   </div>
 </template>
 
+
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import postApi from '@/api/postApi'
 
 const route = useRoute()
+const router = useRouter()
 const stockId = route.params.stockId
 
 const posts = ref([])
@@ -128,7 +132,8 @@ async function toggleLike(post) {
 
 // 게시글 상세 보기
 function openPost(post) {
-  selectedPost.value = post
+  console.log('openPost postId:', post)
+  router.push({ name: 'postDetail', params: { postId: post.postId } })
 }
 
 // 날짜 포맷팅
