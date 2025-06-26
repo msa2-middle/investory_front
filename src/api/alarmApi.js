@@ -3,11 +3,10 @@ import api from './api'
 // 전체 Alarm API
 const alarmApi = {
   getAlarms: (data) => api.get('/alarm/storage', data),
-  readAll: (data) => api.get('/alarm/read-all', data),
-  readOne: (data) => api.get('/alarm/read-one', data),
+  readAll: (data) => api.put('/alarm/read-all', {}, data), // 빈 객체 추가
+  readOne: (alarmId, data) => api.put(`/alarm/read-one/${alarmId}`, {}, data), // URL에 alarmId 포함
   createStockAlertSettings: ({ stockId, targetPrice, condition }) =>
     api.post(
-      // `/stock-alert-setting/stocks/${encodeURIComponent(stockId)}`, ==> 혹시 모를 특수문자,공백,한글 방지용 안전벨트
       `/stock-alert-setting/stocks/${stockId}`,
       {
         targetPrice,      // 예: 60000

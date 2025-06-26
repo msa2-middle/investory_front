@@ -41,6 +41,7 @@
         <div class="header-item">현재가</div>
         <div class="header-item">등락률</div>
         <div class="header-item">거래대금</div>
+        <div class="header-item">알림</div>
       </div>
 
       <div class="stock-items" :class="{ 'table-flash': tableFlash }">
@@ -309,7 +310,7 @@ export default {
       try {
         // 1) 백엔드에 알림 설정 저장
         await alarmApi.createStockAlertSettings({
-          stockCode,
+          stockId: stockCode,
           targetPrice,
           condition
         });
