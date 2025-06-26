@@ -21,17 +21,7 @@
     </div>
 
     <div class="time-filter">
-      <!-- <span class="filter-label">실시간</span> -->
-      <!-- <div class="time-buttons">
-        <button
-          v-for="period in timePeriods"
-          :key="period"
-          :class="['time-btn', { active: activePeriod === period }]"
-          @click="setActivePeriod(period)"
-        >
-          {{ period }}
-        </button>
-      </div> -->
+
     </div>
 
     <div class="stock-list">
@@ -55,6 +45,8 @@
           v-for="(stock, index) in stockData"
           :key="stock.code"
           class="stock-item"
+          @click="goToStockInfo(stock.code)"
+          style="cursor: pointer;"
         >
           <div class="stock-rank">
             <button class="heart-btn">♡</button>
@@ -63,7 +55,6 @@
 
           <div class="stock-info">
             <div class="stock-icon">
-              <!-- <img src="/api/placeholder/24/24" :alt="stock.name" /> -->
             </div>
             <span class="stock-name">{{ stock.name }}</span>
           </div>
@@ -276,6 +267,10 @@ export default {
       if (page < 0 || page >= this.totalPages) return;
       this.fetchStockData(this.activeTab, page);
       this.startDataTimer();
+    },
+
+    goToStockInfo(code) {
+      this.$router.push(`/stock/${code}/stock-info`);
     }
   }
 }
