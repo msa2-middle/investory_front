@@ -4,14 +4,21 @@
       <!-- 왼쪽: Investory 이니셜 -->
       <div class="header-left">
         <div class="logo">
+<<<<<<< feature/mainpage-detail-link
+          <!-- <span class="logo-text">Investory</span> -->
+          <router-link to="/" class="logo">
+                <span class="logo-text">Investory</span>
+          </router-link>
+=======
           <router-link to="/" class="logo-text">Investory</router-link>
+>>>>>>> dev
         </div>
       </div>
 
       <!-- 중앙: 홈, 검색 input, 검색 -->
       <div class="header-center">
         <nav class="nav-menu">
-          <a href="#" class="nav-item active">홈</a>
+          <router-link to="/" class="nav-item" active-class="active">홈</router-link>
         </nav>
 
         <div class="search-container">
@@ -19,12 +26,13 @@
             <input
               type="text"
               class="search-input"
-              placeholder="종목명, 종목코드 검색"
+              placeholder="종목코드 검색"
               v-model="searchQuery"
               @focus="onSearchFocus"
               @blur="onSearchBlur"
+              @keyup.enter="performSearch"
             />
-            <button class="search-btn">
+            <button class="search-btn" @click="performSearch">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -33,7 +41,7 @@
         </div>
 
         <nav class="nav-menu">
-          <a href="#" class="nav-item">검색</a>
+          <!-- <a href="#" class="nav-item">검색</a> -->
         </nav>
       </div>
 
@@ -89,6 +97,15 @@ function goToLogin() {
 
 function goToSignup() {
   router.push('/signup')
+}
+
+function performSearch() {
+  if (searchQuery.value.trim()) {
+    // 검색어에서 공백 제거하고 대문자로 변환 (종목코드 형식)
+    const ticker = searchQuery.value.trim().toUpperCase();
+    router.push(`/stock/${ticker}/stock-info`);
+    searchQuery.value = ''; // 검색 후 입력창 초기화
+  }
 }
 </script>
 
