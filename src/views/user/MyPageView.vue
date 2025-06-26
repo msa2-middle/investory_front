@@ -23,31 +23,14 @@
 
     <!-- 통계 카드 -->
     <div class="row mb-4">
-      <div class="col-md-3 mb-3">
+      <div class="col-md-3 mb-3" v-for="(value, label) in statMap" :key="label">
         <div class="stat-card">
-          <h6>내 게시글</h6>
-          <p>{{ myPosts.length }} 개</p>
-        </div>
-      </div>
-      <div class="col-md-3 mb-3">
-        <div class="stat-card">
-          <h6>내 댓글</h6>
-          <p>{{ myComments.length }} 개</p>
-        </div>
-      </div>
-      <div class="col-md-3 mb-3">
-        <div class="stat-card">
-          <h6>좋아요한 게시글</h6>
-          <p>{{ likedPosts.length }} 개</p>
-        </div>
-      </div>
-      <div class="col-md-3 mb-3">
-        <div class="stat-card">
-          <h6>좋아요한 댓글</h6>
-          <p>{{ likedComments.length }} 개</p>
+          <h6>{{ label }}</h6>
+          <p>{{ value }} 개</p>
         </div>
       </div>
     </div>
+
 
     <!-- 탭 메뉴 -->
     <ul class="nav nav-tabs mb-3">

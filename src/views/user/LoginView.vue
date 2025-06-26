@@ -54,7 +54,7 @@ async function login() {
     localStorage.setItem('userName', response.data.name)
 
     alert('로그인 성공!')
-    router.push('/mypage')
+    router.push('/')
     }catch (error) {
     const message = error.response?.data?.message || '로그인 실패: 알 수 없는 오류'
     alert(message)
