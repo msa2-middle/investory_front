@@ -1,61 +1,306 @@
 <template>
-  <div class="mypage">
-    <h2>마이페이지</h2>
+  <div class="container py-5" style="color: white;">
+    <!--<h2 class="mb-4 text-center">마이페이지</h2>-->
 
-    <div v-if="user">
-      <p><strong>이메일:</strong> {{ user.email }}</p>
-      <p><strong>이름:</strong> {{ user.name }}</p>
+    <!-- 상단 사용자 정보 -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-body d-flex justify-content-between align-items-start">
+        <!-- 왼쪽: 사용자 정보 -->
+        <div>
+          <h4>{{ user.name }}</h4>
+          <br>
+          <p><strong>이메일:</strong> {{ user.email }}</p>
+          <p><strong>전화번호:</strong> {{ user.phone || '등록되지 않음' }}</p>
+        </div>
+
+        <!-- 오른쪽: 버튼 -->
+        <div>
+          <button class="btn btn-sm btn-outline-primary" @click="showEditModal = true">내 정보 수정</button>
+        </div>
+      </div>
     </div>
 
-    <div v-else>
-      <p>불러오는 중...</p>
+
+    <!-- 통계 카드 -->
+    <div class="row mb-4">
+      <div class="col-md-3 mb-3">
+        <div class="stat-card">
+          <h6>내 게시글</h6>
+          <p>{{ myPosts.length }} 개</p>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="stat-card">
+          <h6>내 댓글</h6>
+          <p>{{ myComments.length }} 개</p>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="stat-card">
+          <h6>좋아요한 게시글</h6>
+          <p>{{ likedPosts.length }} 개</p>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="stat-card">
+          <h6>좋아요한 댓글</h6>
+          <p>{{ likedComments.length }} 개</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 탭 메뉴 -->
+    <ul class="nav nav-tabs mb-3">
+      <li class="nav-item">
+        <a class="nav-link" :class="{ active: activeTab === 'posts' }" @click="activeTab = 'posts'">내 게시글</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" :class="{ active: activeTab === 'comments' }" @click="activeTab = 'comments'">내 댓글</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" :class="{ active: activeTab === 'likedPosts' }" @click="activeTab = 'likedPosts'">좋아요한 게시글</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" :class="{ active: activeTab === 'likedComments' }" @click="activeTab = 'likedComments'">좋아요한 댓글</a>
+      </li>
+    </ul>
+
+    <!-- 탭 내용 -->
+    <div v-if="activeTab === 'posts'" class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h5 class="mb-3">최근 작성한 게시글</h5>
+
+        <!-- 게시글이 있을 때 -->
+        <div v-if="myPosts.length > 0">
+          <ul class="list-group">
+            <li class="list-group-item" v-for="post in myPosts.slice(0, 5)" :key="post.postId">
+              {{ post.title }}
+            </li>
+          </ul>
+
+          <!-- 게시글이 5개 초과일 때만 전체 보기 링크 -->
+          <div v-if="myPosts.length > 5" class="text-center mt-3">
+            <router-link
+              to="/my-posts"
+              class="text-muted"
+              style="font-weight: bold; text-decoration: none;">
+              작성한 게시글 전체 보기 &gt;
+            </router-link>
+          </div>
+        </div>
+
+        <!-- 게시글이 아예 없을 때 -->
+        <div v-else class="text-center text-muted py-3">
+          작성한 게시글이 없습니다.
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 최근 작성한 댓글 -->
+<div v-if="activeTab === 'comments'" class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="mb-3">최근 작성한 댓글</h5>
+
+    <div v-if="myComments.length > 0">
+      <ul class="list-group">
+        <li class="list-group-item" v-for="comment in myComments.slice(0, 5)" :key="comment.commentId">
+          {{ comment.content }}
+        </li>
+      </ul>
+      <div v-if="myComments.length > 5" class="text-center mt-3">
+        <router-link to="/my-comments" class="text-muted" style="font-weight: bold; text-decoration: none;">
+          작성한 댓글 전체 보기 &gt;
+        </router-link>
+      </div>
+    </div>
+
+    <div v-else class="text-center text-muted py-3">
+      작성한 댓글이 없습니다.
+    </div>
+  </div>
+</div>
+
+<!-- 좋아요한 게시글 -->
+<div v-if="activeTab === 'likedPosts'" class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="mb-3">좋아요한 게시글</h5>
+
+    <div v-if="likedPosts.length > 0">
+      <ul class="list-group">
+        <li class="list-group-item" v-for="post in likedPosts.slice(0, 5)" :key="post.postId">
+          {{ post.title }}
+        </li>
+      </ul>
+      <div v-if="likedPosts.length > 5" class="text-center mt-3">
+        <router-link to="/liked-posts" class="text-muted" style="font-weight: bold; text-decoration: none;">
+          좋아요한 게시글 전체 보기 &gt;
+        </router-link>
+      </div>
+    </div>
+
+    <div v-else class="text-center text-muted py-3">
+      좋아요한 게시글이 없습니다.
+    </div>
+  </div>
+</div>
+
+<!-- 좋아요한 댓글 -->
+<div v-if="activeTab === 'likedComments'" class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="mb-3">좋아요한 댓글</h5>
+
+    <div v-if="likedComments.length > 0">
+      <ul class="list-group">
+        <li class="list-group-item" v-for="comment in likedComments.slice(0, 5)" :key="comment.commentId">
+          {{ comment.content }}
+        </li>
+      </ul>
+      <div v-if="likedComments.length > 5" class="text-center mt-3">
+        <router-link to="/liked-comments" class="text-muted" style="font-weight: bold; text-decoration: none;">
+          좋아요한 댓글 전체 보기 &gt;
+        </router-link>
+      </div>
+    </div>
+
+    <div v-else class="text-center text-muted py-3">
+      좋아요한 댓글이 없습니다.
+    </div>
+  </div>
+</div>
+
+
+    <!-- 수정 모달 -->
+    <div v-if="showEditModal" class="custom-modal">
+      <div class="custom-modal-content">
+        <div class="d-flex justify-content-between mb-3">
+          <h5>내 정보 수정</h5>
+          <button class="btn-close" @click="closeModal"></button>
+        </div>
+
+        <form @submit.prevent="updateInfo">
+          <div class="mb-3">
+            <label class="form-label">이름</label>
+            <input v-model="editForm.name" type="text" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">전화번호</label>
+            <input v-model="editForm.phone" type="text" class="form-control">
+          </div>
+          <button type="submit" class="btn btn-primary w-100">저장하기</button>
+        </form>
+      </div>
     </div>
   </div>
 </template>
 
-<script>
-import { ref, onMounted } from 'vue'
+<script setup>
+import { ref, onMounted, computed } from 'vue'
 import userApi from '@/api/userApi'
 
-export default {
-  setup() {
-    const user = ref(null)
+const user = ref({})
+const myPosts = ref([])
+const myComments = ref([])
+const likedPosts = ref([])
+const likedComments = ref([])
+const showEditModal = ref(false)
+const activeTab = ref('posts')
 
-    async function fetchMyPage() {
-      const token = localStorage.getItem('accessToken')
-      if (!token) {
-        alert('로그인이 필요합니다!')
-        // router.push('/login') 도 가능
-        return
-      }
+const editForm = ref({ name: '', phone: '' })
 
-      try {
-        const response = await userApi.getMyPage()
-        user.value = response.data
-      } catch (error) {
-        console.error('마이페이지 조회 실패:', error)
-        alert('로그인 정보가 유효하지 않습니다. 다시 로그인 해주세요.')
-        // 로그인 페이지로 이동 처리 예정
-      }
-    }
+const statMap = computed(() => ({
+  '내 게시글': myPosts.value.length,
+  '내 댓글': myComments.value.length,
+  '좋아요한 게시글': likedPosts.value.length,
+  '좋아요한 댓글': likedComments.value.length,
+}))
 
-    onMounted(() => {
-      fetchMyPage()
-    })
+async function fetchAll() {
+  try {
+    const resUser = await userApi.getMyPage()
+    user.value = resUser.data
+    editForm.value.name = resUser.data.name
+    editForm.value.phone = resUser.data.phone
 
-    return { user }
-  },
+    myPosts.value = (await userApi.getMyPosts()).data
+    myComments.value = (await userApi.getMyComments()).data
+    likedPosts.value = (await userApi.getMyLikedPosts()).data
+    likedComments.value = (await userApi.getMyLikedComments()).data
+  } catch {
+    alert('데이터 로딩 실패')
+  }
 }
+
+async function updateInfo() {
+  try {
+    await userApi.updateMyInfo(editForm.value)
+    console.log(editForm.value)
+    alert('정보가 수정되었습니다.')
+    closeModal()
+    fetchAll()
+  } catch {
+    alert('수정 실패')
+  }
+}
+
+function closeModal() {
+  showEditModal.value = false
+}
+
+onMounted(fetchAll)
 </script>
 
+
 <style scoped>
-.mypage {
-  max-width: 600px;
-  margin: 50px auto;
+.no-underline {
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.custom-modal-content .form-label {
+  color: #333; /* 또는 black */
+  font-weight: bold;
+}
+.nav-tabs .nav-link {
+  color: white; /* 기본 탭 글씨색 */
+}
+
+.nav-tabs .nav-link.active {
+  color: black; /* 선택된 탭은 검정 (또는 원하는 색) */
+  background-color: white; /* 선택된 탭 배경 */
+}
+.stat-card {
+  background-color: #1c2230;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.stat-card h6 {
+  margin-bottom: 10px;
+  color: #bbbbbb;
+}
+.stat-card p {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.custom-modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+.custom-modal-content {
+  background: white;
   padding: 30px;
-  background: #101522;
-  color: white;
-  border-radius: 10px;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 </style>
