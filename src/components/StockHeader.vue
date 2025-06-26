@@ -4,7 +4,7 @@
       <!-- 왼쪽: Investory 이니셜 -->
       <div class="header-left">
         <div class="logo">
-          <span class="logo-text">Investory</span>
+          <router-link to="/" class="logo-text">Investory</router-link>
         </div>
       </div>
 

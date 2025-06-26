@@ -56,8 +56,8 @@ async function login() {
     alert('로그인 성공!')
     router.push('/mypage')
     }catch (error) {
-    const message = error.response?.data || '로그인 실패';
-    alert(message);
+    const message = error.response?.data?.message || '로그인 실패: 알 수 없는 오류'
+    alert(message)
   }
 }
 function goToPasswordReset() {

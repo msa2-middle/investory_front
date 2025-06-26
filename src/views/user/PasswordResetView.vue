@@ -8,7 +8,7 @@
         <label class="form-label">가입한 이메일</label>
         <input v-model="email" type="email" class="form-control" required />
       </div>
-      <button class="btn btn-primary w-100" @click="sendCode">인증코드 전송</button>
+      <button class="reset-btn" @click="sendCode">인증코드 전송</button>
     </div>
 
     <div v-if="step === 2">
@@ -16,7 +16,7 @@
         <label class="form-label">이메일로 받은 인증코드</label>
         <input v-model="code" type="text" class="form-control" required />
       </div>
-      <button class="btn btn-primary w-100" @click="verifyCode">인증하기</button>
+      <button class="reset-btn" @click="verifyCode">인증하기</button>
     </div>
 
     <div v-if="step === 3">
@@ -24,7 +24,7 @@
         <label class="form-label">새 비밀번호</label>
         <input v-model="newPassword" type="password" class="form-control" required />
       </div>
-      <button class="btn btn-success w-100" @click="resetPassword">비밀번호 변경</button>
+      <button class="reset-btn" @click="resetPassword">비밀번호 변경</button>
     </div>
 
   </div>
@@ -47,7 +47,8 @@ async function sendCode() {
     alert('인증코드가 전송되었습니다.')
     step.value = 2
   } catch (error) {
-    alert(error.response?.data || '이메일 전송 실패')
+    const message = error.response?.data?.message || '이메일 전송 실패'
+    alert(message)
   }
 }
 
@@ -57,7 +58,8 @@ async function verifyCode() {
     alert('인증 성공! 새 비밀번호를 입력하세요.')
     step.value = 3
   } catch (error) {
-    alert(error.response?.data || '인증 실패')
+    const message = error.response?.data?.message || '인증 실패'
+    alert(message)
   }
 }
 
@@ -72,7 +74,29 @@ async function resetPassword() {
 
     router.push('/login')
   } catch (error) {
-    alert(error.response?.data || '비밀번호 변경 실패')
+    const message = error.response?.data?.message || '비밀번호 변경 실패'
+    alert(message)
   }
 }
 </script>
+
+<style scoped>
+.reset-btn {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: 0.3s;
+}
+
+.reset-btn:hover {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+}
+
+</style>
