@@ -4,10 +4,14 @@
       <!-- 왼쪽: Investory 이니셜 -->
       <div class="header-left">
         <div class="logo">
+<<<<<<< feature/mainpage-detail-link
           <!-- <span class="logo-text">Investory</span> -->
           <router-link to="/" class="logo">
                 <span class="logo-text">Investory</span>
           </router-link>
+=======
+          <router-link to="/" class="logo-text">Investory</router-link>
+>>>>>>> dev
         </div>
       </div>
 

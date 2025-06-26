@@ -38,9 +38,15 @@ export default {
         alert('회원가입 성공!')
         router.push('/login')
       } catch (error) {
-        console.error('회원가입 실패:', error)
-        alert('회원가입 실패')
-      }
+    console.error('회원가입 실패:', error)
+
+    const message = error.response?.data?.message
+    if (message) {
+      alert(`회원가입 실패: ${message}`)
+    } else {
+      alert('회원가입 실패: 알 수 없는 오류')
+    }
+  }
     }
 
     return { form, submitForm }
