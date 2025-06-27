@@ -24,6 +24,10 @@ const postApi = {
 
   // 7. 게시글 좋아요 취소
   unlikePost: (postId) => api.delete(`/posts/${postId}/likes`),
+
+  // 8. 특정 유저가 해당 게시글에 좋아요를 눌렀는지 확인
+  hasUserLiked: (postId) => api.get(`/posts/${postId}/likes/check`),
+
 }
 
 export default postApi

@@ -78,8 +78,20 @@ async function fetchPosts() {
   error.value = null
   try {
     const response = await postApi.getPostsByStock(stockId)
-    // createdAt 기준 내림차순 정렬
-    posts.value = (response.data || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    // 각 게시글에 대해 hasUserLiked 호출하여 liked 상태 동기화
+    const postsWithLike = await Promise.all(
+      (response.data || []).map(async (post) => {
+        let liked = false
+        try {
+          const res = await postApi.hasUserLiked(post.postId)
+          liked = res.data === true
+        } catch {
+          liked = false
+        }
+        return { ...post, liked }
+      })
+    )
+    posts.value = postsWithLike.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   } catch {
     // error.value = '게시글을 불러오는데 실패했습니다.'
   } finally {

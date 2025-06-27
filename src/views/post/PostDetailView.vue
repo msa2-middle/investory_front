@@ -7,9 +7,16 @@
       <h2 class="post-title">{{ post.title }}</h2>
       <div class="post-meta">
         <span>작성일: {{ formatDate(post.createdAt) }}</span>
-        <span class="like-count">♥ {{ post.likeCount || 0 }}</span>
       </div>
       <div class="post-content">{{ post.content }}</div>
+      <div class="like-row">
+        <span
+          class="like-heart"
+          :class="{ liked: liked }"
+          @click="toggleLike"
+          >{{ liked ? '♥' : '♡' }}</span>
+        <span class="like-count">{{ post.likeCount || 0 }}</span>
+      </div>
       <div class="button-group">
         <button class="edit-btn" @click="isEditMode = true">수정</button>
         <button class="delete-btn" @click="onDelete">삭제</button>
@@ -41,6 +48,7 @@ const error = ref(null)
 const isEditMode = ref(false)
 const editTitle = ref('')
 const editContent = ref('')
+const liked = ref(false)
 
 async function fetchPost() {
   isLoading.value = true
@@ -50,6 +58,13 @@ async function fetchPost() {
     post.value = response.data
     editTitle.value = response.data.title
     editContent.value = response.data.content
+    // 좋아요 상태 동기화
+    try {
+      const res = await postApi.hasUserLiked(postId)
+      liked.value = res.data === true
+    } catch {
+      liked.value = false
+    }
   } catch {
     error.value = '게시글을 불러오지 못했습니다.'
   } finally {
@@ -70,6 +85,7 @@ function formatDate(dateString) {
   })
 }
 
+// 게시글 수정 
 async function onEdit() {
   try {
     await postApi.updatePost(postId, {
@@ -90,6 +106,7 @@ async function onEdit() {
   }
 }
 
+// 게시글 삭제
 async function onDelete() {
   if (!confirm('정말 삭제하시겠습니까?')) return
 
@@ -110,6 +127,22 @@ async function onDelete() {
   }
 }
 
+async function toggleLike() {
+  if (!post.value) return
+  try {
+    if (liked.value) {
+      await postApi.unlikePost(postId)
+      liked.value = false
+      post.value.likeCount = (post.value.likeCount || 1) - 1
+    } else {
+      await postApi.likePost(postId)
+      liked.value = true
+      post.value.likeCount = (post.value.likeCount || 0) + 1
+    }
+  } catch {
+    alert('좋아요 처리에 실패했습니다.')
+  }
+}
 
 onMounted(fetchPost)
 </script>
@@ -145,9 +178,27 @@ onMounted(fetchPost)
   display: flex;
   gap: 18px;
 }
-.like-count {
+.like-heart {
+  font-size: .8rem;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s;
+  color: #a0aec0;
+  margin-right: 6px;
+}
+.like-heart.liked {
   color: #ef4444;
-  font-weight: bold;
+}
+.like-heart:active {
+  transform: scale(1.2);
+}
+.like-count {
+  font-size: .8rem;
+  color: #a0aec0;
+  transition: color 0.2s;
+}
+.liked + .like-count {
+  color: #ef4444;
 }
 .post-content {
   font-size: 1.08rem;
@@ -206,5 +257,11 @@ onMounted(fetchPost)
   font-size: 1.1rem;
   margin-bottom: 10px;
   resize: vertical;
+}
+.like-row {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 </style>
