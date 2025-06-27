@@ -4,6 +4,7 @@
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else-if="!post" class="no-data">게시글이 존재하지 않습니다.</div>
     <div v-else>
+      <div class="post-author">{{ postAuthorName || '익명' }}</div>
       <h2 class="post-title">{{ post.title }}</h2>
       <div class="post-meta">
         <span>작성일: {{ formatDate(post.createdAt) }}</span>
@@ -49,6 +50,7 @@ const isEditMode = ref(false)
 const editTitle = ref('')
 const editContent = ref('')
 const liked = ref(false)
+const postAuthorName = ref('')
 
 async function fetchPost() {
   isLoading.value = true
@@ -58,6 +60,13 @@ async function fetchPost() {
     post.value = response.data
     editTitle.value = response.data.title
     editContent.value = response.data.content
+    // 작성자 이름 동기화
+    try {
+      const authorRes = await postApi.getPostAuthorByPostId(postId)
+      postAuthorName.value = authorRes.data.authorName || authorRes.data.name || '익명'
+    } catch {
+      postAuthorName.value = '익명'
+    }
     // 좋아요 상태 동기화
     try {
       const res = await postApi.hasUserLiked(postId)
@@ -85,7 +94,7 @@ function formatDate(dateString) {
   })
 }
 
-// 게시글 수정 
+// 게시글 수정
 async function onEdit() {
   try {
     await postApi.updatePost(postId, {
@@ -165,6 +174,12 @@ onMounted(fetchPost)
 }
 .error {
   color: #ef4444;
+}
+.post-author {
+  font-size: 0.92rem;
+  color: #60a5fa;
+  font-weight: 500;
+  margin-bottom: 2px;
 }
 .post-title {
   font-size: 1.5rem;

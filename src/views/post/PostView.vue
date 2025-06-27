@@ -19,6 +19,7 @@
     <div v-else class="post-list">
       <div v-if="posts.length === 0" class="no-posts">등록된 글이 없습니다.</div>
       <div v-for="post in posts" :key="post.postId" class="post-item" @click="openPost(post)">
+        <div class="post-author">{{ post.authorName || '익명' }}</div>
         <div class="post-title">{{ post.title }}</div>
         <div class="post-meta">{{ formatDate(post.createdAt) }}</div>
         <div class="post-like">
@@ -33,26 +34,6 @@
       </div>
     </div>
 
-
-    <!-- 게시글 상세 모달 방식  -->
-    <!-- <div v-if="selectedPost" class="modal-overlay" @click.self="selectedPost = null">
-      <div class="modal-content">
-        <h3>{{ selectedPost.title }}</h3>
-        <div class="modal-date">{{ formatDate(selectedPost.createdAt) }}</div>
-        <div class="modal-body">{{ selectedPost.content }}</div>
-        <div class="post-like modal-like">
-          <button
-            class="like-btn"
-            @click.stop="toggleLike(selectedPost)"
-            :disabled="selectedPost.likeLoading"
-          >
-            {{ selectedPost.liked ? '좋아요 취소' : '좋아요' }}
-          </button>
-          <span class="like-count">♥ {{ selectedPost.likeCount || 0 }}</span>
-        </div>
-        <button @click="selectedPost = null">닫기</button>
-      </div>
-    </div> -->
 
   </div>
 </template>
@@ -78,20 +59,27 @@ async function fetchPosts() {
   error.value = null
   try {
     const response = await postApi.getPostsByStock(stockId)
-    // 각 게시글에 대해 hasUserLiked 호출하여 liked 상태 동기화
-    const postsWithLike = await Promise.all(
+    // 각 게시글에 대해 hasUserLiked, 작성자 이름 동기화
+    const postsWithLikeAndAuthor = await Promise.all(
       (response.data || []).map(async (post) => {
         let liked = false
+        let authorName = '익명'
         try {
           const res = await postApi.hasUserLiked(post.postId)
           liked = res.data === true
         } catch {
           liked = false
         }
-        return { ...post, liked }
+        try {
+          const authorRes = await postApi.getPostAuthorByPostId(post.postId)
+          authorName = authorRes.data.authorName || authorRes.data.name || '익명'
+        } catch {
+          authorName = '익명'
+        }
+        return { ...post, liked, authorName }
       })
     )
-    posts.value = postsWithLike.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    posts.value = postsWithLikeAndAuthor.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   } catch {
     // error.value = '게시글을 불러오는데 실패했습니다.'
   } finally {
@@ -108,8 +96,16 @@ async function addPost() {
       title: newPost.value.title,
       content: newPost.value.content
     })
+    // 새 게시글에 대해 작성자 이름 동기화
+    let authorName = '익명'
+    try {
+      const authorRes = await postApi.getPostAuthorByPostId(response.data.postId)
+      authorName = authorRes.data.authorName || authorRes.data.name || '익명'
+    } catch {
+      authorName = '익명'
+    }
     // 새 게시글을 목록 맨 위에 추가
-    posts.value.unshift(response.data)
+    posts.value.unshift({ ...response.data, authorName })
     newPost.value.title = ''
     newPost.value.content = ''
   } catch (err) {
@@ -220,6 +216,12 @@ h2 {
 }
 .post-item:hover {
   background: #2d3250;
+}
+.post-author {
+  font-size: 0.92rem;
+  color: #60a5fa;
+  font-weight: 500;
+  margin-bottom: 2px;
 }
 .post-title {
   font-size: 1.1rem;

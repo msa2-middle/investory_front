@@ -28,6 +28,9 @@ const postApi = {
   // 8. 특정 유저가 해당 게시글에 좋아요를 눌렀는지 확인
   hasUserLiked: (postId) => api.get(`/posts/${postId}/likes/check`),
 
+  // 9. postId로 작성자 이름 찾기
+  getPostAuthorByPostId: (postId) => api.get(`/community/posts/author/${postId}`),
+
 }
 
 export default postApi
