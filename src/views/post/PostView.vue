@@ -22,14 +22,13 @@
         <div class="post-title">{{ post.title }}</div>
         <div class="post-meta">{{ formatDate(post.createdAt) }}</div>
         <div class="post-like">
-          <button
-            class="like-btn"
+          <span
+            class="like-heart"
+            :class="{ liked: post.liked }"
             @click.stop="toggleLike(post)"
             :disabled="post.likeLoading"
-          >
-            {{ post.liked ? '좋아요 취소' : '좋아요' }}
-          </button>
-          <span class="like-count">♥ {{ post.likeCount || 0 }}</span>
+            >{{ post.liked ? '♥' : '♡' }}</span>
+          <span class="like-count">{{ post.likeCount || 0 }}</span>
         </div>
       </div>
     </div>
@@ -70,7 +69,6 @@ const stockId = route.params.stockId
 
 const posts = ref([])
 const newPost = ref({ title: '', content: '' })
-const selectedPost = ref(null)
 const isLoading = ref(false)
 const error = ref(null)
 
@@ -82,8 +80,7 @@ async function fetchPosts() {
     const response = await postApi.getPostsByStock(stockId)
     // createdAt 기준 내림차순 정렬
     posts.value = (response.data || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  } catch (err) {
-    console.error('게시글 조회 실패:', err)
+  } catch {
     // error.value = '게시글을 불러오는데 실패했습니다.'
   } finally {
     isLoading.value = false
@@ -111,19 +108,20 @@ async function addPost() {
 
 // 좋아요/좋아요 취소 토글
 async function toggleLike(post) {
+
   if (post.likeLoading) return
   post.likeLoading = true
   try {
     if (post.liked) {
-      await postApi.unlikePost(post.id)
+      await postApi.unlikePost(post.postId)
       post.liked = false
       post.likeCount = (post.likeCount || 1) - 1
     } else {
-      await postApi.likePost(post.id)
+      await postApi.likePost(post.postId)
       post.liked = true
       post.likeCount = (post.likeCount || 0) + 1
     }
-  } catch (err) {
+  } catch {
     alert('좋아요 처리에 실패했습니다.')
   } finally {
     post.likeLoading = false
@@ -290,28 +288,27 @@ h2 {
   align-items: center;
   gap: 8px;
 }
-.like-btn {
-  background: #23263a;
-  color: #fff;
-  border: 1px solid #3b82f6;
-  border-radius: 6px;
-  padding: 4px 12px;
+.like-heart {
+  font-size: .8rem;
   cursor: pointer;
-  font-size: 0.95rem;
-  transition: background 0.2s, color 0.2s;
+  user-select: none;
+  transition: color 0.2s;
+  color: #a0aec0;
+  margin-right: 6px;
 }
-.like-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.like-heart.liked {
+  color: #ef4444;
 }
-.like-btn:hover:not(:disabled) {
-  background: #3b82f6;
-  color: #fff;
+.like-heart:active {
+  transform: scale(1.2);
 }
 .like-count {
+  font-size: .8rem;
+  color: #a0aec0;
+  transition: color 0.2s;
+}
+.liked + .like-count {
   color: #ef4444;
-  font-weight: bold;
-  font-size: 1rem;
 }
 .modal-like {
   margin-bottom: 16px;
