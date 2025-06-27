@@ -1,6 +1,16 @@
 <template>
   <div class="post-board">
-    <h2>{{ stockId }} 종목 자유게시판</h2>
+    <div v-if="stockPrice" class="stock-price-top">현재가: {{ Number(stockPrice).toLocaleString() }}원</div>
+    <h2 class="stock-title-bar">
+      <template v-if="stockName">
+        <span class="stock-name-main">{{ stockName }}</span>
+        <span class="stock-ticker-main">({{ stockId }})</span>
+        <span class="stock-board-label">종목 커뮤니티</span>
+      </template>
+      <template v-else>
+        {{ stockId }} 종목 커뮤니티
+      </template>
+    </h2>
 
     <!-- 글 작성 폼 -->
     <form class="post-form" @submit.prevent="addPost">
@@ -43,6 +53,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import postApi from '@/api/postApi'
+import stockApi from '@/api/stockApi'
 
 const route = useRoute()
 const router = useRouter()
@@ -52,6 +63,9 @@ const posts = ref([])
 const newPost = ref({ title: '', content: '' })
 const isLoading = ref(false)
 const error = ref(null)
+const stockName = ref('')
+const stockPrice = ref('')
+
 
 // 게시글 목록 조회
 async function fetchPosts() {
@@ -156,7 +170,28 @@ function formatDate(dateString) {
   })
 }
 
-onMounted(fetchPosts)
+async function fetchStockInfo() {
+  try {
+    const res = await stockApi.getStockInfo(stockId)
+    stockName.value = res.data.prdtName || ''
+
+    // 주가 정보도 함께 불러오기
+    try {
+      const priceRes = await stockApi.getStockPrice(stockId)
+      stockPrice.value = priceRes.data.output?.stck_prpr || ''
+    } catch {
+      stockPrice.value = ''
+    }
+  } catch {
+    stockName.value = ''
+    stockPrice.value = ''
+  }
+}
+
+onMounted(() => {
+  fetchStockInfo()
+  fetchPosts()
+})
 </script>
 
 <style scoped>
@@ -326,5 +361,39 @@ h2 {
 }
 .modal-like {
   margin-bottom: 16px;
+}
+
+.stock-title-bar {
+  margin-bottom: 24px;
+  text-align: center;
+}
+.stock-name-main {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-right: 8px;
+  color: #fff;
+}
+.stock-ticker-main {
+  font-size: 1.15rem;
+  color: #60a5fa;
+  margin-right: 12px;
+}
+.stock-board-label {
+  font-size: 1.1rem;
+  color: #a0aec0;
+}
+.stock-price-main {
+  font-size: 1.1rem;
+  color: #22d3ee;
+  font-weight: bold;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+.stock-price-top {
+  text-align: center;
+  font-size: 1.5rem;
+  color: #22d3ee;
+  font-weight: bold;
+  margin-bottom: 4px;
 }
 </style>
