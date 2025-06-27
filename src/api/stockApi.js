@@ -25,6 +25,9 @@ const stockApi = {
 
   // 8. 성장성 비율
   getGrowthRatio: (code) => publicApi.get(`/stock/${code}/analytics/growth-ratio`),
+
+  // 9. 주가 정보 가져오기
+  getStockPrice: (code) => publicApi.get(`/stock/${code}/price`),
 }
 
 export default stockApi

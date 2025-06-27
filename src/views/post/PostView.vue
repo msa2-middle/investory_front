@@ -1,6 +1,16 @@
 <template>
   <div class="post-board">
-    <h2>{{ stockId }} 종목 자유게시판</h2>
+    <div v-if="stockPrice" class="stock-price-top">현재가: {{ Number(stockPrice).toLocaleString() }}원</div>
+    <h2 class="stock-title-bar">
+      <template v-if="stockName">
+        <span class="stock-name-main">{{ stockName }}</span>
+        <span class="stock-ticker-main">({{ stockId }})</span>
+        <span class="stock-board-label">종목 커뮤니티</span>
+      </template>
+      <template v-else>
+        {{ stockId }} 종목 커뮤니티
+      </template>
+    </h2>
 
     <!-- 글 작성 폼 -->
     <form class="post-form" @submit.prevent="addPost">
@@ -19,41 +29,21 @@
     <div v-else class="post-list">
       <div v-if="posts.length === 0" class="no-posts">등록된 글이 없습니다.</div>
       <div v-for="post in posts" :key="post.postId" class="post-item" @click="openPost(post)">
+        <div class="post-author">{{ post.authorName || '익명' }}</div>
         <div class="post-title">{{ post.title }}</div>
         <div class="post-meta">{{ formatDate(post.createdAt) }}</div>
         <div class="post-like">
-          <button
-            class="like-btn"
+          <span
+            class="like-heart"
+            :class="{ liked: post.liked }"
             @click.stop="toggleLike(post)"
             :disabled="post.likeLoading"
-          >
-            {{ post.liked ? '좋아요 취소' : '좋아요' }}
-          </button>
-          <span class="like-count">♥ {{ post.likeCount || 0 }}</span>
+            >{{ post.liked ? '♥' : '♡' }}</span>
+          <span class="like-count">{{ post.likeCount || 0 }}</span>
         </div>
       </div>
     </div>
 
-
-    <!-- 게시글 상세 모달 방식  -->
-    <!-- <div v-if="selectedPost" class="modal-overlay" @click.self="selectedPost = null">
-      <div class="modal-content">
-        <h3>{{ selectedPost.title }}</h3>
-        <div class="modal-date">{{ formatDate(selectedPost.createdAt) }}</div>
-        <div class="modal-body">{{ selectedPost.content }}</div>
-        <div class="post-like modal-like">
-          <button
-            class="like-btn"
-            @click.stop="toggleLike(selectedPost)"
-            :disabled="selectedPost.likeLoading"
-          >
-            {{ selectedPost.liked ? '좋아요 취소' : '좋아요' }}
-          </button>
-          <span class="like-count">♥ {{ selectedPost.likeCount || 0 }}</span>
-        </div>
-        <button @click="selectedPost = null">닫기</button>
-      </div>
-    </div> -->
 
   </div>
 </template>
@@ -63,6 +53,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import postApi from '@/api/postApi'
+import stockApi from '@/api/stockApi'
 
 const route = useRoute()
 const router = useRouter()
@@ -70,9 +61,11 @@ const stockId = route.params.stockId
 
 const posts = ref([])
 const newPost = ref({ title: '', content: '' })
-const selectedPost = ref(null)
 const isLoading = ref(false)
 const error = ref(null)
+const stockName = ref('')
+const stockPrice = ref('')
+
 
 // 게시글 목록 조회
 async function fetchPosts() {
@@ -80,10 +73,28 @@ async function fetchPosts() {
   error.value = null
   try {
     const response = await postApi.getPostsByStock(stockId)
-    // createdAt 기준 내림차순 정렬
-    posts.value = (response.data || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  } catch (err) {
-    console.error('게시글 조회 실패:', err)
+    // 각 게시글에 대해 hasUserLiked, 작성자 이름 동기화
+    const postsWithLikeAndAuthor = await Promise.all(
+      (response.data || []).map(async (post) => {
+        let liked = false
+        let authorName = '익명'
+        try {
+          const res = await postApi.hasUserLiked(post.postId)
+          liked = res.data === true
+        } catch {
+          liked = false
+        }
+        try {
+          const authorRes = await postApi.getPostAuthorByPostId(post.postId)
+          authorName = authorRes.data.authorName || authorRes.data.name || '익명'
+        } catch {
+          authorName = '익명'
+        }
+        return { ...post, liked, authorName }
+      })
+    )
+    posts.value = postsWithLikeAndAuthor.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  } catch {
     // error.value = '게시글을 불러오는데 실패했습니다.'
   } finally {
     isLoading.value = false
@@ -99,8 +110,16 @@ async function addPost() {
       title: newPost.value.title,
       content: newPost.value.content
     })
+    // 새 게시글에 대해 작성자 이름 동기화
+    let authorName = '익명'
+    try {
+      const authorRes = await postApi.getPostAuthorByPostId(response.data.postId)
+      authorName = authorRes.data.authorName || authorRes.data.name || '익명'
+    } catch {
+      authorName = '익명'
+    }
     // 새 게시글을 목록 맨 위에 추가
-    posts.value.unshift(response.data)
+    posts.value.unshift({ ...response.data, authorName })
     newPost.value.title = ''
     newPost.value.content = ''
   } catch (err) {
@@ -111,19 +130,20 @@ async function addPost() {
 
 // 좋아요/좋아요 취소 토글
 async function toggleLike(post) {
+
   if (post.likeLoading) return
   post.likeLoading = true
   try {
     if (post.liked) {
-      await postApi.unlikePost(post.id)
+      await postApi.unlikePost(post.postId)
       post.liked = false
       post.likeCount = (post.likeCount || 1) - 1
     } else {
-      await postApi.likePost(post.id)
+      await postApi.likePost(post.postId)
       post.liked = true
       post.likeCount = (post.likeCount || 0) + 1
     }
-  } catch (err) {
+  } catch {
     alert('좋아요 처리에 실패했습니다.')
   } finally {
     post.likeLoading = false
@@ -150,7 +170,28 @@ function formatDate(dateString) {
   })
 }
 
-onMounted(fetchPosts)
+async function fetchStockInfo() {
+  try {
+    const res = await stockApi.getStockInfo(stockId)
+    stockName.value = res.data.prdtName || ''
+
+    // 주가 정보도 함께 불러오기
+    try {
+      const priceRes = await stockApi.getStockPrice(stockId)
+      stockPrice.value = priceRes.data.output?.stck_prpr || ''
+    } catch {
+      stockPrice.value = ''
+    }
+  } catch {
+    stockName.value = ''
+    stockPrice.value = ''
+  }
+}
+
+onMounted(() => {
+  fetchStockInfo()
+  fetchPosts()
+})
 </script>
 
 <style scoped>
@@ -210,6 +251,12 @@ h2 {
 }
 .post-item:hover {
   background: #2d3250;
+}
+.post-author {
+  font-size: 0.92rem;
+  color: #60a5fa;
+  font-weight: 500;
+  margin-bottom: 2px;
 }
 .post-title {
   font-size: 1.1rem;
@@ -290,30 +337,63 @@ h2 {
   align-items: center;
   gap: 8px;
 }
-.like-btn {
-  background: #23263a;
-  color: #fff;
-  border: 1px solid #3b82f6;
-  border-radius: 6px;
-  padding: 4px 12px;
+.like-heart {
+  font-size: .8rem;
   cursor: pointer;
-  font-size: 0.95rem;
-  transition: background 0.2s, color 0.2s;
+  user-select: none;
+  transition: color 0.2s;
+  color: #a0aec0;
+  margin-right: 6px;
 }
-.like-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.like-heart.liked {
+  color: #ef4444;
 }
-.like-btn:hover:not(:disabled) {
-  background: #3b82f6;
-  color: #fff;
+.like-heart:active {
+  transform: scale(1.2);
 }
 .like-count {
+  font-size: .8rem;
+  color: #a0aec0;
+  transition: color 0.2s;
+}
+.liked + .like-count {
   color: #ef4444;
-  font-weight: bold;
-  font-size: 1rem;
 }
 .modal-like {
   margin-bottom: 16px;
+}
+
+.stock-title-bar {
+  margin-bottom: 24px;
+  text-align: center;
+}
+.stock-name-main {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-right: 8px;
+  color: #fff;
+}
+.stock-ticker-main {
+  font-size: 1.15rem;
+  color: #60a5fa;
+  margin-right: 12px;
+}
+.stock-board-label {
+  font-size: 1.1rem;
+  color: #a0aec0;
+}
+.stock-price-main {
+  font-size: 1.1rem;
+  color: #22d3ee;
+  font-weight: bold;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+.stock-price-top {
+  text-align: center;
+  font-size: 1.5rem;
+  color: #22d3ee;
+  font-weight: bold;
+  margin-bottom: 4px;
 }
 </style>
