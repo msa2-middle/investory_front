@@ -53,9 +53,9 @@
                 <li>
                   <button class="dropdown-item" @click.stop="logout">로그아웃</button>
                 </li>
-                <Alarm />
               </ul>
             </div>
+            <Alarm />
           </template>
 
           <template v-else>
@@ -305,12 +305,10 @@ function performSearch() {
 }
 
 .btn-login {
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
   color: white;
 }
 
 .btn-login:hover {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
   transform: translateY(-1px);
 }
 
