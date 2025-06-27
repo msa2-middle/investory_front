@@ -42,9 +42,21 @@
       <div class="header-right">
         <div class="auth-buttons">
           <template v-if="authStore.token">
-            <span class="welcome-text">{{ authStore.userName }}님</span>
-            <button class="btn-login" @click="logout">로그아웃</button>
+            <div class="dropdown" @click="toggleDropdown" style="position: relative;">
+              <button class="btn-login dropdown-toggle" type="button">
+                {{ authStore.userName }}님
+              </button>
+              <ul class="dropdown-menu show" v-if="dropdownOpen" style="right: 0; left: auto;">
+                <li>
+                  <router-link to="/mypage" class="dropdown-item">마이페이지</router-link>
+                </li>
+                <li>
+                  <button class="dropdown-item" @click.stop="logout">로그아웃</button>
+                </li>
+              </ul>
+            </div>
           </template>
+
           <template v-else>
             <button class="btn-signup" @click="goToSignup">회원가입</button>
             <button class="btn-login" @click="goToLogin">로그인</button>
@@ -57,13 +69,22 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 
+const dropdownOpen = ref(false)
 const authStore = useAuthStore() // 전역 로그인 상태 (Pinia)
 const router = useRouter() // 라우터 이동 기능 사용
 
+watch(
+  () => authStore.token,
+  (newToken) => {
+    if (newToken) {
+      dropdownOpen.value = false
+    }
+  }
+)
 
 // 검색창 상태 (반응형 상태)
 const searchQuery = ref('')
@@ -76,6 +97,10 @@ function onSearchFocus() {
 
 function onSearchBlur() {
   isSearchFocused.value = false
+}
+
+function toggleDropdown() {
+  dropdownOpen.value = !dropdownOpen.value
 }
 
 // 로그아웃 (스토어 초기화 + 페이지 이동)
