@@ -1,9 +1,13 @@
 import api from './api'
+import publicApi from './publicApi'
 
 // 전체 User API
 const userApi = {
-  signup: (data) => api.post('/users/signup', data),
-  login: (data) => api.post('/users/login', data),
+  // 🔓 비인증: publicApi 사용
+  signup: (data) => publicApi.post('/users/signup', data),
+  login: (data) => publicApi.post('/users/login', data),
+
+  // 🔐 인증 필요: api 사용
   getMyPage: () => api.get('/users/me'),
   updateMyInfo: (updateData) => api.patch('/users/me', updateData),
   updatePassword: (passwordData) => api.patch('/users/password', passwordData),

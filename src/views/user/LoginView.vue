@@ -6,18 +6,21 @@
         <input type="email" v-model="form.email" placeholder="이메일" required />
         <input type="password" v-model="form.password" placeholder="비밀번호" required />
         <button type="submit" class="login-btn">로그인</button>
+        <p class="forgot-password">
+          <a @click="goToPasswordReset">비밀번호를 잊으셨나요?</a>
+        </p>
       </form>
 
       <div class="social-buttons">
-        <button class="social google">
+        <button class="social google"  @click="socialLogin('google')">
           <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" />
           구글로 로그인
         </button>
-        <button class="social naver">
+        <button class="social naver" @click="socialLogin('naver')">
           <img src="@/assets/icons/naver.png" alt="네이버" />
           네이버로 로그인
         </button>
-        <button class="social kakao">
+        <button class="social kakao" @click="socialLogin('kakao')">
           <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_small.png" alt="Kakao" />
           카카오로 로그인
         </button>
@@ -26,46 +29,59 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref } from 'vue'
 import userApi from '@/api/userApi'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 
-export default {
-  setup() {
-    const form = ref({
-      email: '',
-      password: '',
-    })
+const form = ref({
+  email: '',
+  password: '',
+})
 
-    const authStore = useAuthStore()
-    const router = useRouter()
+const authStore = useAuthStore()
+const router = useRouter()
 
-    async function login() {
-      try {
-        const response = await userApi.login(form.value)
-        const token = response.data.accessToken
-        authStore.setToken(token)
-        authStore.setUserName(response.data.name)
+async function login() {
+  try {
+    const response = await userApi.login(form.value)
+    const token = response.data.accessToken
+    authStore.setToken(token)
+    authStore.setUserName(response.data.name)
 
-        localStorage.setItem('accessToken', token)
-        localStorage.setItem('userName', response.data.name)
+    localStorage.setItem('accessToken', token)
+    localStorage.setItem('userName', response.data.name)
 
-        alert('로그인 성공!')
-        router.push('/mypage')
-      } catch (error) {
-        console.error('로그인 실패:', error)
-        alert('로그인 실패')
-      }
-    }
+    alert('로그인 성공!')
+    router.push('/')
+    }catch (error) {
+    const message = error.response?.data?.message || '로그인 실패: 알 수 없는 오류'
+    alert(message)
+  }
+}
+function goToPasswordReset() {
+  router.push('/password-reset');
+}
 
-    return { form, login }
-  },
+// 소셜로그인 버튼 클릭 시 실행
+function socialLogin(provider) {
+  window.location.href = `http://localhost:8091/oauth2/authorization/${provider}`;
 }
 </script>
 
+
 <style scoped>
+.forgot-password {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.forgot-password a {
+  color: #bbbbbb;
+  cursor: pointer;
+  text-decoration: underline;
+}
 .login-page {
   height: calc(100vh - 100px);
   padding-top: 80px;

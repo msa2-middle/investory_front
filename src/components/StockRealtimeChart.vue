@@ -21,17 +21,7 @@
     </div>
 
     <div class="time-filter">
-      <!-- <span class="filter-label">실시간</span> -->
-      <!-- <div class="time-buttons">
-        <button
-          v-for="period in timePeriods"
-          :key="period"
-          :class="['time-btn', { active: activePeriod === period }]"
-          @click="setActivePeriod(period)"
-        >
-          {{ period }}
-        </button>
-      </div> -->
+
     </div>
 
     <div class="stock-list">
@@ -56,6 +46,8 @@
           v-for="(stock, index) in stockData"
           :key="stock.code"
           class="stock-item"
+          @click="goToStockInfo(stock.code)"
+          style="cursor: pointer;"
         >
           <div class="stock-rank">
             <button class="heart-btn">♡</button>
@@ -64,7 +56,6 @@
 
           <div class="stock-info">
             <div class="stock-icon">
-              <!-- <img src="/api/placeholder/24/24" :alt="stock.name" /> -->
             </div>
             <span class="stock-name">{{ stock.name }}</span>
           </div>
@@ -299,11 +290,6 @@ export default {
       this.fetchStockData(this.activeTab, page);
       this.startDataTimer();
     },
-    // 주가 알람 설정 모달 창 열기 -> 버튼 클릭 시
-    openAlertModal(stockCode) {
-      this.selectedStockCode   = stockCode;
-      this.isAlertModalOpen = true;
-    },
 
     // 주가 알람 설정 저장(생성)
     async saveAlert({ stockCode, targetPrice, condition }) {
@@ -327,11 +313,17 @@ export default {
           (e.response?.data?.message ?? '알 수 없는 오류가 발생했습니다.')
         );
       }
+    },
+
+    // 주식 상세 페이지로 이동
+    goToStockInfo(code) {
+      this.$router.push(`/stock/${code}/stock-info`);
     }
 
   }
 }
 </script>
+
 
 <style>
 .table-flash {

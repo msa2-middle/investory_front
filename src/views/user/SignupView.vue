@@ -5,46 +5,83 @@
       <form @submit.prevent="submitForm">
         <input type="email" v-model="form.email" placeholder="이메일" required />
         <input type="password" v-model="form.password" placeholder="비밀번호" required />
+
+        <p class="password-strength" v-if="passwordTouched" :class="strengthClass">
+          {{ strengthMessage }}
+        </p>
+
         <input type="text" v-model="form.name" placeholder="이름" required />
         <input type="text" v-model="form.phone" placeholder="전화번호" />
 
-        <button type="submit" class="signup-btn">회원가입</button>
+        <button type="submit" class="signup-btn" :disabled="!isFormValid">회원가입</button>
       </form>
 
     </div>
   </div>
 </template>
 
-<script>
-import { ref } from 'vue'
-import api from '@/api/api'
+<script setup>
+import { ref, computed, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
+import userApi from '@/api/userApi'
 
-export default {
-  setup() {
-    const form = ref({
-      email: '',
-      password: '',
-      name: '',
-      phone: '',
-    })
+const form = ref({
+  email: '',
+  password: '',
+  name: '',
+  phone: '',
+})
 
-    const router = useRouter()
+const passwordTouched = ref(false)
+const specialCharRegex = new RegExp(/[!@#$%^&*()_\-=\[\]{};':"\\|,.<>\/?]/)
 
-    async function submitForm() {
-      try {
-        const response = await api.post('/users/signup', form.value)
-        console.log('회원가입 성공:', response.data)
-        alert('회원가입 성공!')
-        router.push('/login')
-      } catch (error) {
-        console.error('회원가입 실패:', error)
-        alert('회원가입 실패')
-      }
-    }
+const strengthMessage = computed(() => {
+  const pwd = form.value.password
+  let score = 0
+  if (pwd.length >= 8) score++
+  if (/[a-zA-Z]/.test(pwd)) score++
+  if (/\d/.test(pwd)) score++
+  if (specialCharRegex.test(pwd)) score++
 
-    return { form, submitForm }
-  },
+  if (score <= 2) return '비밀번호가 너무 약해요'
+  if (score === 3) return '적절한 비밀번호예요'
+  return '강력한 비밀번호입니다!'
+})
+
+const strengthClass = computed(() => {
+  const msg = strengthMessage.value
+  if (msg.includes('약')) return 'weak'
+  if (msg.includes('적절')) return 'medium'
+  return 'strong'
+})
+
+watchEffect(() => {
+  if (form.value.password.length > 0) {
+    passwordTouched.value = true
+  }
+})
+
+const isFormValid = computed(() => {
+  return (
+    form.value.email &&
+    form.value.name &&
+    form.value.password &&
+    strengthMessage.value !== '비밀번호가 너무 약해요'
+  )
+})
+
+const router = useRouter()
+
+async function submitForm() {
+  try {
+    await userApi.signup(form.value)
+    alert('회원가입 성공!')
+    router.push('/login')
+  } catch (error) {
+    console.error('회원가입 실패:', error)
+    const message = error.response?.data?.message
+    alert(`회원가입 실패: ${message || '알 수 없는 오류'}`)
+  }
 }
 </script>
 
@@ -146,5 +183,26 @@ export default {
 .kakao {
   background: #fee500;
   color: #381e1f;
+}
+.password-strength {
+  font-size: 13px;
+  margin-top: -12px;
+  margin-bottom: 16px;
+}
+
+.password-strength.weak {
+  color: #f87171; /* 빨강 */
+}
+
+.password-strength.medium {
+  color: #facc15; /* 노랑 */
+}
+
+.password-strength.strong {
+  color: #4ade80; /* 초록 */
+}
+.signup-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

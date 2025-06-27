@@ -4,14 +4,14 @@
       <!-- 왼쪽: Investory 이니셜 -->
       <div class="header-left">
         <div class="logo">
-          <span class="logo-text">Investory</span>
+          <router-link to="/" class="logo-text">Investory</router-link>
         </div>
       </div>
 
       <!-- 중앙: 홈, 검색 input, 검색 -->
       <div class="header-center">
         <nav class="nav-menu">
-          <a href="#" class="nav-item active">홈</a>
+          <router-link to="/" class="nav-item" active-class="active">홈</router-link>
         </nav>
 
         <div class="search-container">
@@ -19,12 +19,13 @@
             <input
               type="text"
               class="search-input"
-              placeholder="종목명, 종목코드 검색"
+              placeholder="종목코드 검색"
               v-model="searchQuery"
               @focus="onSearchFocus"
               @blur="onSearchBlur"
+              @keyup.enter="performSearch"
             />
-            <button class="search-btn">
+            <button class="search-btn" @click="performSearch">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -33,7 +34,7 @@
         </div>
 
         <nav class="nav-menu">
-          <a href="#" class="nav-item">검색</a>
+          <!-- <a href="#" class="nav-item">검색</a> -->
         </nav>
       </div>
 
@@ -41,10 +42,22 @@
       <div class="header-right">
         <div class="auth-buttons">
           <template v-if="authStore.token">
-            <span class="welcome-text">{{ authStore.userName }}님</span>
-            <button class="btn-login" @click="logout">로그아웃</button>
-            <Alarm />
+            <div class="dropdown" @click="toggleDropdown" style="position: relative;">
+              <button class="btn-login dropdown-toggle" type="button">
+                {{ authStore.userName }}님
+              </button>
+              <ul class="dropdown-menu show" v-if="dropdownOpen" style="right: 0; left: auto;">
+                <li>
+                  <router-link to="/mypage" class="dropdown-item">마이페이지</router-link>
+                </li>
+                <li>
+                  <button class="dropdown-item" @click.stop="logout">로그아웃</button>
+                </li>
+                <Alarm />
+              </ul>
+            </div>
           </template>
+
           <template v-else>
             <button class="btn-signup" @click="goToSignup">회원가입</button>
             <button class="btn-login" @click="goToLogin">로그인</button>
@@ -57,14 +70,23 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import Alarm from '@/components/Alarm.vue'
 
+const dropdownOpen = ref(false)
 const authStore = useAuthStore() // 전역 로그인 상태 (Pinia)
 const router = useRouter() // 라우터 이동 기능 사용
 
+watch(
+  () => authStore.token,
+  (newToken) => {
+    if (newToken) {
+      dropdownOpen.value = false
+    }
+  }
+)
 
 // 검색창 상태 (반응형 상태)
 const searchQuery = ref('')
@@ -79,6 +101,10 @@ function onSearchBlur() {
   isSearchFocused.value = false
 }
 
+function toggleDropdown() {
+  dropdownOpen.value = !dropdownOpen.value
+}
+
 // 로그아웃 (스토어 초기화 + 페이지 이동)
 function logout() {
   authStore.clearToken()
@@ -91,6 +117,15 @@ function goToLogin() {
 
 function goToSignup() {
   router.push('/signup')
+}
+
+function performSearch() {
+  if (searchQuery.value.trim()) {
+    // 검색어에서 공백 제거하고 대문자로 변환 (종목코드 형식)
+    const ticker = searchQuery.value.trim().toUpperCase();
+    router.push(`/stock/${ticker}/stock-info`);
+    searchQuery.value = ''; // 검색 후 입력창 초기화
+  }
 }
 </script>
 
