@@ -293,12 +293,10 @@ function goToSignup() {
 }
 
 .btn-login {
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
   color: white;
 }
 
 .btn-login:hover {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
   transform: translateY(-1px);
 }
 
