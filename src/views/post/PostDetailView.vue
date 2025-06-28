@@ -10,13 +10,19 @@
         <span>작성일: {{ formatDate(post.createdAt) }}</span>
       </div>
       <div class="post-content">{{ post.content }}</div>
-      <div class="like-row">
-        <span
-          class="like-heart"
-          :class="{ liked: liked }"
-          @click="toggleLike"
+      <div class="post-stats">
+        <div class="like-row">
+          <span
+            class="like-heart"
+            :class="{ liked: liked }"
+            @click="toggleLike"
           >{{ liked ? '♥' : '♡' }}</span>
-        <span class="like-count">{{ post.likeCount || 0 }}</span>
+          <span class="like-count">{{ post.likeCount || 0 }}</span>
+        </div>
+        <div class="comment-stats">
+          <span class="comment-icon">💬</span>
+          <span class="comment-count">{{ commentCount }}개의 댓글</span>
+        </div>
       </div>
       <div class="button-group">
         <button class="edit-btn" @click="isEditMode = true">수정</button>
@@ -30,6 +36,15 @@
           <button class="cancel-btn" @click="isEditMode = false">취소</button>
         </div>
       </div>
+
+      <!-- 댓글 섹션 -->
+      <div class="comments-section">
+        <h3 class="comments-title">댓글 {{ commentCount }}개</h3>
+        <CommentSection
+          :post-id="post.postId"
+          @comment-count-updated="updateCommentCount"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -38,6 +53,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import postApi from '@/api/postApi'
+import CommentSection from '@/views/comment/CommentSection.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -51,31 +67,63 @@ const editTitle = ref('')
 const editContent = ref('')
 const liked = ref(false)
 const postAuthorName = ref('')
+const commentCount = ref(0)
 
 async function fetchPost() {
   isLoading.value = true
   error.value = null
+  post.value = null // 명시적으로 초기화
+
   try {
+    console.log('Fetching post with ID:', postId) // 디버깅용
+
+    if (!postId) {
+      throw new Error('게시글 ID가 없습니다.')
+    }
+
     const response = await postApi.getPost(postId)
-    post.value = response.data
-    editTitle.value = response.data.title
-    editContent.value = response.data.content
-    // 작성자 이름 동기화
+    console.log('Post API response:', response) // 디버깅용
+
+    // API 응답 구조 확인 및 처리
+    if (!response || (!response.data && !response)) {
+      throw new Error('게시글 데이터가 없습니다.')
+    }
+
+    // response.data가 있으면 사용, 없으면 response 자체 사용
+    const postData = response.data || response
+
+    if (!postData || !postData.postId) {
+      throw new Error('유효하지 않은 게시글 데이터입니다.')
+    }
+
+    post.value = postData
+    editTitle.value = postData.title || ''
+    editContent.value = postData.content || ''
+
+    // 작성자 이름 조회
     try {
       const authorRes = await postApi.getPostAuthorByPostId(postId)
-      postAuthorName.value = authorRes.data.authorName || authorRes.data.name || '익명'
-    } catch {
+      const authorData = authorRes.data || authorRes
+      postAuthorName.value = authorData.authorName || authorData.name || '익명'
+    } catch (authorError) {
+      console.warn('작성자 정보 조회 실패:', authorError)
       postAuthorName.value = '익명'
     }
-    // 좋아요 상태 동기화
+
+    // 좋아요 상태 조회
     try {
-      const res = await postApi.hasUserLiked(postId)
-      liked.value = res.data === true
-    } catch {
+      const likeRes = await postApi.hasUserLiked(postId)
+      const likeData = likeRes.data || likeRes
+      liked.value = likeData === true || likeData === 'true'
+    } catch (likeError) {
+      console.warn('좋아요 상태 조회 실패:', likeError)
       liked.value = false
     }
-  } catch {
-    error.value = '게시글을 불러오지 못했습니다.'
+
+  } catch (fetchError) {
+    console.error('게시글 조회 실패:', fetchError)
+    error.value = fetchError.message || '게시글을 불러오지 못했습니다.'
+    post.value = null
   } finally {
     isLoading.value = false
   }
@@ -83,30 +131,41 @@ async function fetchPost() {
 
 function formatDate(dateString) {
   if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  })
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return ''
+    return date.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    })
+  } catch {
+    return ''
+  }
 }
 
 // 게시글 수정
 async function onEdit() {
+  if (!editTitle.value.trim() || !editContent.value.trim()) {
+    alert('제목과 내용을 모두 입력해주세요.')
+    return
+  }
+
   try {
     await postApi.updatePost(postId, {
-      title: editTitle.value,
-      content: editContent.value
+      title: editTitle.value.trim(),
+      content: editContent.value.trim()
     })
     alert('수정되었습니다.')
     isEditMode.value = false
     await fetchPost()
   } catch (e) {
+    console.error('게시글 수정 실패:', e)
     let msg = '수정 실패'
-    if (e.response && e.response.data && e.response.data.message) {
+    if (e.response?.data?.message) {
       msg = e.response.data.message
     } else if (e.message) {
       msg = e.message
@@ -123,11 +182,10 @@ async function onDelete() {
     await postApi.deletePost(postId)
     alert('삭제되었습니다.')
     router.back()
-
   } catch (e) {
-    console.error(e)
+    console.error('게시글 삭제 실패:', e)
     let msg = '삭제 실패'
-    if (e.response && e.response.data && e.response.data.message) {
+    if (e.response?.data?.message) {
       msg = e.response.data.message
     } else if (e.message) {
       msg = e.message
@@ -138,22 +196,31 @@ async function onDelete() {
 
 async function toggleLike() {
   if (!post.value) return
+
   try {
     if (liked.value) {
       await postApi.unlikePost(postId)
       liked.value = false
-      post.value.likeCount = (post.value.likeCount || 1) - 1
+      post.value.likeCount = Math.max((post.value.likeCount || 1) - 1, 0)
     } else {
       await postApi.likePost(postId)
       liked.value = true
       post.value.likeCount = (post.value.likeCount || 0) + 1
     }
-  } catch {
+  } catch (e) {
+    console.error('좋아요 처리 실패:', e)
     alert('좋아요 처리에 실패했습니다.')
   }
 }
 
-onMounted(fetchPost)
+// 댓글 수 업데이트
+function updateCommentCount(count) {
+  commentCount.value = count || 0
+}
+
+onMounted(() => {
+  fetchPost()
+})
 </script>
 
 <style scoped>
@@ -193,6 +260,29 @@ onMounted(fetchPost)
   display: flex;
   gap: 18px;
 }
+.post-content {
+  font-size: 1.08rem;
+  line-height: 1.7;
+  white-space: pre-line;
+  margin-bottom: 24px;
+}
+
+.post-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #23263a;
+  border-radius: 8px;
+}
+
+.like-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .like-heart {
   font-size: .8rem;
   cursor: pointer;
@@ -215,15 +305,26 @@ onMounted(fetchPost)
 .liked + .like-count {
   color: #ef4444;
 }
-.post-content {
-  font-size: 1.08rem;
-  line-height: 1.7;
-  white-space: pre-line;
+
+.comment-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
+
+.comment-icon {
+  font-size: 1rem;
+}
+
+.comment-count {
+  font-size: 0.9rem;
+  color: #a0aec0;
+}
+
 .button-group {
   display: flex;
   gap: 10px;
-  margin-top: 18px;
+  margin-bottom: 18px;
 }
 .edit-btn, .delete-btn, .save-btn, .cancel-btn {
   padding: 8px 18px;
@@ -250,7 +351,7 @@ onMounted(fetchPost)
   color: #181c2f;
 }
 .edit-form {
-  margin-top: 24px;
+  margin-bottom: 24px;
   background: #23284a;
   padding: 18px;
   border-radius: 8px;
@@ -273,10 +374,17 @@ onMounted(fetchPost)
   margin-bottom: 10px;
   resize: vertical;
 }
-.like-row {
-  margin-top: 16px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+
+.comments-section {
+  margin-top: 32px;
+  border-top: 2px solid #374151;
+  padding-top: 24px;
+}
+
+.comments-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #e2e8f0;
 }
 </style>
