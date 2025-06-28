@@ -121,7 +121,7 @@ async function fetchComments() {
       })
     )
 
-    comments.value = commentsWithDetails.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+    comments.value = commentsWithDetails.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 
     // 댓글 수 업데이트 이벤트 발생
     emit('comment-count-updated', comments.value.length)
@@ -154,7 +154,7 @@ async function addComment() {
       likeCount: 0,
       likeLoading: false
     }
-    comments.value.push(newCommentData)
+    comments.value.unshift(newCommentData)
     newComment.value = ''
 
     // 댓글 수 업데이트
