@@ -46,7 +46,6 @@
           v-for="(stock, index) in stockData"
           :key="stock.code"
           class="stock-item"
-          @click="goToStockInfo(stock.code)"
           style="cursor: pointer;"
         >
           <div class="stock-rank">
@@ -57,7 +56,12 @@
           <div class="stock-info">
             <div class="stock-icon">
             </div>
-            <span class="stock-name">{{ stock.name }}</span>
+            <span
+              class="stock-name-link"
+              @click.stop="goToStockInfo(stock.code)"
+            >
+              {{ stock.name }}
+            </span>
           </div>
 
           <div class="stock-price">
@@ -315,6 +319,11 @@ export default {
       }
     },
 
+    openAlertModal(code) {
+      this.selectedStockCode = code;   // 어떤 종목인지 저장
+      this.isAlertModalOpen = true;    // 모달 열기
+    },
+
     // 주식 상세 페이지로 이동
     goToStockInfo(code) {
       this.$router.push(`/stock/${code}/stock-info`);
@@ -332,5 +341,21 @@ export default {
 @keyframes table-flash-anim {
   0% { background: #2a2a2a; }
   100% { background: transparent; }
+}
+
+/* StockRealtimeChart.css ─ 추가 */
+.stock-name-link {
+  cursor: pointer;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.stock-name-link:hover {
+  transform: translateY(-2px) scale(1.03);
+  color: #3b82f6;          /* 살짝 파란색 강조 */
+  text-decoration: underline;
+}
+
+.stock-name-link:active {
+  transform: translateY(0) scale(0.98);
 }
 </style>
