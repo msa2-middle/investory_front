@@ -14,16 +14,23 @@ const postApi = {
   getPost: (postId) => publicApi.get(`/community/posts/${postId}`),
 
   // 4. 게시글 수정
-  updatePost: (postId, post) => api.put(`/community/posts/${postId}`, post),
+  updatePost: (postId, post) => api.patch(`/community/posts/${postId}`, post),
 
   // 5. 게시글 삭제
   deletePost: (postId) => api.delete(`/community/posts/${postId}`),
 
   // 6. 게시글 좋아요
-  likePost: (postId) => api.post(`posts/${postId}/likes`),
+  likePost: (postId) => api.post(`/posts/${postId}/likes`),
 
   // 7. 게시글 좋아요 취소
-  unlikePost: (postId) => api.delete(`posts/${postId}/likes`),
+  unlikePost: (postId) => api.delete(`/posts/${postId}/likes`),
+
+  // 8. 특정 유저가 해당 게시글에 좋아요를 눌렀는지 확인
+  hasUserLiked: (postId) => api.get(`/posts/${postId}/likes/check`),
+
+  // 9. postId로 작성자 이름 찾기
+  getPostAuthorByPostId: (postId) => api.get(`/community/posts/author/${postId}`),
+
 }
 
 export default postApi
