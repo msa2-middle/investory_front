@@ -58,6 +58,10 @@ const router = createRouter({
       name: 'mypage',
       component: MyPageView,
     },
+    {
+      path: '/stock/:stockId/price',
+      component: () => import('@/views/StockInfo/StockPriceView.vue'),
+    },
 
     // Stock routes with nested structure
     {
