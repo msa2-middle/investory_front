@@ -9,7 +9,7 @@
       <!-- 읽지 않은 알림 개수 뱃지 -->
       <span v-if="unreadCount > 0" class="notification-badge">{{ unreadCount }}</span>
     </button>
-    <div v-if="dropdownOpen" class="dropdown-menu show">
+    <div v-if="dropdownOpen" class="alarm-dropdown-menu">
       <div class="dropdown-header">
         <span class="header-title">알림</span>
         <button
