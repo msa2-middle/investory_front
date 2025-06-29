@@ -163,9 +163,17 @@ async function addPost() {
     })
     newPost.value.title = ''
     newPost.value.content = ''
-  } catch (err) {
+  }
+
+  catch (err) {
     console.error('게시글 작성 실패:', err)
-    error.value = '게시글 작성에 실패했습니다.'
+    if (err.response?.data?.message) {
+      error.value = err.response.data.message
+    } else if (err.response?.data) {
+      error.value = err.response.data
+    } else {
+      error.value = '게시글 작성에 실패했습니다.'
+    }
   }
 }
 
@@ -183,8 +191,15 @@ async function toggleLike(post) {
       post.liked = true
       post.likeCount = (post.likeCount || 0) + 1
     }
-  } catch {
-    alert('좋아요 처리에 실패했습니다.')
+  } catch (err) {
+    console.error('좋아요 처리 실패:', err)
+    if (err.response?.data?.message) {
+      alert(err.response.data.message)
+    } else if (err.response?.data) {
+      alert(typeof err.response.data === 'object' ? JSON.stringify(err.response.data) : err.response.data)
+    } else {
+      alert('좋아요 처리에 실패했습니다.')
+    }
   } finally {
     post.likeLoading = false
   }
