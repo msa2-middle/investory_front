@@ -55,6 +55,7 @@
                 </li>
               </ul>
             </div>
+            <Alarm />
           </template>
 
           <template v-else>
@@ -72,6 +73,7 @@
 import { ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import Alarm from '@/components/Alarm.vue'
 
 const dropdownOpen = ref(false)
 const authStore = useAuthStore() // 전역 로그인 상태 (Pinia)
@@ -303,12 +305,10 @@ function performSearch() {
 }
 
 .btn-login {
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
   color: white;
 }
 
 .btn-login:hover {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
   transform: translateY(-1px);
 }
 

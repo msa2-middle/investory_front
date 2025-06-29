@@ -31,6 +31,7 @@
         <div class="header-item">현재가</div>
         <div class="header-item">등락률</div>
         <div class="header-item">거래대금</div>
+        <div class="header-item">알림</div>
       </div>
 
       <div class="stock-items" :class="{ 'table-flash': tableFlash }">
@@ -70,6 +71,11 @@
           <div class="stock-volume">
             {{ formatVolume(stock.trade_amt) }}원
           </div>
+
+          <!-- 각각의 주식에 대한 목표 가격 설정을 위한 div -->
+          <div class="stock-alert">
+            <StockAlertButton @open="openAlertModal(stock.code)" />
+          </div>
         </div>
       </div>
 
@@ -105,12 +111,22 @@
       </div>
     </div>
 
+    <!-- ① 모달 컴포넌트: 리스트 바깥에 단 한 번만 렌더 -->
+    <StockAlertModal
+      v-if="isAlertModalOpen"
+    :show="isAlertModalOpen"
+    :stock-code="selectedStockCode"
+    @close="isAlertModalOpen = false"
+    @save="saveAlert" />
   </div>
 </template>
 
 <script>
 import axios from 'axios';
 import '../assets/StockRealtimeChart.css'; // <-- CSS 파일을 임포트합니다.
+import StockAlertButton from '@/components/StockAlertButton.vue'; // 알람 설정 버튼
+import StockAlertModal  from '@/components/StockAlertModal.vue'; // 알람 설정 모달 창
+import alarmApi from '@/api/alarmApi.js'
 
 export default {
   name: 'StockRealtimeChart',
@@ -136,9 +152,15 @@ export default {
       timer: null,
       dataTimer: null,
       tableFlash: false,
+      // 알람 설정을 위한 변수
+      isAlertModalOpen: false,
+      selectedStockCode: null,
     };
   },
-
+  components: {
+    StockAlertButton,
+    StockAlertModal
+  },
 
   computed: {
     visiblePages() {
@@ -269,12 +291,39 @@ export default {
       this.startDataTimer();
     },
 
+    // 주가 알람 설정 저장(생성)
+    async saveAlert({ stockCode, targetPrice, condition }) {
+      try {
+        // 1) 백엔드에 알림 설정 저장
+        await alarmApi.createStockAlertSettings({
+          stockId: stockCode,
+          targetPrice,
+          condition
+        });
+
+        // 2) 성공 메시지 (토스트·알럿 등)
+        alert('알림이 저장되었습니다!');
+
+        // 3) 모달 닫기
+        this.isAlertModalOpen = false;
+      } catch (e) {
+        // 에러 처리
+        alert(
+          '저장 실패: ' +
+          (e.response?.data?.message ?? '알 수 없는 오류가 발생했습니다.')
+        );
+      }
+    },
+
+    // 주식 상세 페이지로 이동
     goToStockInfo(code) {
       this.$router.push(`/stock/${code}/stock-info`);
     }
+
   }
 }
 </script>
+
 
 <style>
 .table-flash {
