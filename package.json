@@ -11,6 +11,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@bhplugin/vue3-datatable": "^2.0.2",
     "axios": "^1.10.0",
     "bootstrap": "^5.3.7",
     "jwt-decode": "^4.0.0",

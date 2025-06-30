@@ -2,52 +2,105 @@
   <div class="container py-5 text-white">
     <h2 class="mb-5 text-center">내 활동 전체 보기</h2>
 
-    <!-- 내가 작성한 게시글 -->
-    <section class="mb-5">
-      <h4 class="mb-3">📝 내가 작성한 게시글</h4>
-      <SearchTable
-        :items="myPosts"
-        :columns="postColumns"
-        searchPlaceholder="제목으로 검색"
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4">
+      <li class="nav-item" v-for="tab in tabs" :key="tab.key">
+        <button
+          class="nav-link"
+          :class="{ active: activeTab === tab.key }"
+          @click="activeTab = tab.key"
+        >
+          {{ tab.label }}
+        </button>
+      </li>
+    </ul>
+
+    <!-- 검색창 추가 -->
+    <div class="mb-3">
+      <input
+        v-model="searchText"
+        type="text"
+        class="form-control"
+        placeholder="검색어를 입력하세요"
       />
-    </section>
+    </div>
+
+    <!-- 내가 작성한 게시글 -->
+    <div v-if="activeTab === 'myPosts'" class="bg-white text-dark p-3 rounded">
+      <Vue3Datatable
+        :rows="myPosts"
+        :columns="postColumns"
+        :page-size="rowsPerPage"
+        :page-size-options="rowsPerPageOptions"
+        :layout="{ table: true, bottom: ['info', 'pagination'] }"
+        :search="searchText"
+        skin="bh-table-hover"
+        :sortable="true"
+      />
+    </div>
 
     <!-- 내가 작성한 댓글 -->
-    <section class="mb-5">
-      <h4 class="mb-3">💬 내가 작성한 댓글</h4>
-      <SearchTable
-        :items="myComments"
+    <div v-else-if="activeTab === 'myComments'" class="bg-white text-dark p-3 rounded">
+      <Vue3Datatable
+        :rows="myComments"
         :columns="commentColumns"
-        searchPlaceholder="댓글 내용 검색"
+        :page-size="rowsPerPage"
+        :page-size-options="rowsPerPageOptions"
+        :layout="{ table: true, bottom: ['info', 'pagination'] }"
+        :search="searchText"
+        skin="bh-table-hover"
+        :sortable="true"
       />
-    </section>
+    </div>
 
     <!-- 좋아요한 게시글 -->
-    <section class="mb-5">
-      <h4 class="mb-3">❤️ 좋아요한 게시글</h4>
-      <SearchTable
-        :items="likedPosts"
+    <div v-else-if="activeTab === 'likedPosts'" class="bg-white text-dark p-3 rounded">
+      <Vue3Datatable
+        :rows="likedPosts"
         :columns="postColumns"
-        searchPlaceholder="제목으로 검색"
+        :page-size="rowsPerPage"
+        :page-size-options="rowsPerPageOptions"
+        :layout="{ table: true, bottom: ['info', 'pagination'] }"
+        :search="searchText"
+        skin="bh-table-hover"
+        :sortable="true"
       />
-    </section>
+    </div>
 
     <!-- 좋아요한 댓글 -->
-    <section>
-      <h4 class="mb-3">👍 좋아요한 댓글</h4>
-      <SearchTable
-        :items="likedComments"
+    <div v-else-if="activeTab === 'likedComments'" class="bg-white text-dark p-3 rounded">
+      <Vue3Datatable
+        :rows="likedComments"
         :columns="commentColumns"
-        searchPlaceholder="댓글 내용 검색"
+        :page-size="rowsPerPage"
+        :page-size-options="rowsPerPageOptions"
+        :layout="{ table: true, bottom: ['info', 'pagination'] }"
+        :search="searchText"
+        skin="bh-table-hover"
+        :sortable="true"
       />
-    </section>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import Vue3Datatable from '@bhplugin/vue3-datatable'
+import '@bhplugin/vue3-datatable/dist/style.css'
 import userApi from '@/api/userApi'
-import SearchTable from '@/components/SearchTable.vue'
+
+const activeTab = ref('myPosts')
+const rowsPerPage = ref(5)
+const rowsPerPageOptions = [5, 10, 20, 50]
+
+const searchText = ref('')
+
+const tabs = [
+  { key: 'myPosts', label: '작성한 게시글' },
+  { key: 'myComments', label: '작성한 댓글' },
+  { key: 'likedPosts', label: '좋아요한 게시글' },
+  { key: 'likedComments', label: '좋아요한 댓글' },
+]
 
 const myPosts = ref([])
 const myComments = ref([])
@@ -55,13 +108,29 @@ const likedPosts = ref([])
 const likedComments = ref([])
 
 const postColumns = [
-  { label: '제목', field: 'title' },
-  { label: '작성일', field: 'createdAt' }
+  {
+    title: '제목',
+    field: 'title',
+    sortable: true,
+  },
+  {
+    title: '작성일',
+    field: 'createdAt',
+    sortable: true,
+  },
 ]
 
 const commentColumns = [
-  { label: '내용', field: 'content' },
-  { label: '작성일', field: 'createdAt' }
+  {
+    title: '내용',
+    field: 'content',
+    sortable: true,
+  },
+  {
+    title: '작성일',
+    field: 'createdAt',
+    sortable: true,
+  },
 ]
 
 onMounted(async () => {
@@ -71,22 +140,22 @@ onMounted(async () => {
     const res3 = await userApi.getMyLikedPosts()
     const res4 = await userApi.getMyLikedComments()
 
-    myPosts.value = res1.data.map(p => ({
+    myPosts.value = res1.data.map((p) => ({
       title: p.title,
       createdAt: formatDate(p.createdAt || p.created_at),
     }))
 
-    myComments.value = res2.data.map(c => ({
+    myComments.value = res2.data.map((c) => ({
       content: c.content,
       createdAt: formatDate(c.createdAt || c.created_at),
     }))
 
-    likedPosts.value = res3.data.map(p => ({
+    likedPosts.value = res3.data.map((p) => ({
       title: p.title,
       createdAt: formatDate(p.createdAt || p.created_at),
     }))
 
-    likedComments.value = res4.data.map(c => ({
+    likedComments.value = res4.data.map((c) => ({
       content: c.content,
       createdAt: formatDate(c.createdAt || c.created_at),
     }))
@@ -104,33 +173,29 @@ function formatDate(dateStr) {
 </script>
 
 <style scoped>
-.table {
-  border-radius: 8px;
-  overflow: hidden;
+.nav-tabs .nav-link {
+  color: #fff;
 }
-
-/* 밝은 테이블 색상 */
-.table.custom-table {
-  background-color: #f8f9fa;
+.nav-tabs .nav-link.active {
   color: #212529;
+  background-color: #fff;
 }
-
-.table.custom-table thead th {
-  background-color: #e9ecef;
-  color: #212529;
-  border: none;
+.container {
+  max-width: 1000px;
 }
-
-.table.custom-table tbody td {
-  background-color: #ffffff;
-  border-top: 1px solid #dee2e6;
+.bh-table-responsive table {
+  background-color: #ffffff !important;
+  color: #212529 !important;
 }
-
-.table.custom-table tr:hover td {
-  background-color: #f1f3f5;
+.bh-table-responsive th,
+.bh-table-responsive td {
+  background-color: #f1f1f1 !important;
+  color: #212529 !important;
 }
-
-.page-link {
-  cursor: pointer;
+.bh-text-black {
+  color: #212529 !important;
+}
+.bh-table-responsive thead {
+  display: table-header-group !important;
 }
 </style>
