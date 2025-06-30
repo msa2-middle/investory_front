@@ -25,7 +25,8 @@
     </div>
 
     <!-- 거래 내역 테이블 -->
-    <div class="table-container">
+    <div class="table-container" v-if="marketOpen">
+      <!-- 기존 거래 테이블 그대로 유지 -->
       <table class="trade-table">
         <thead>
           <tr>
@@ -57,6 +58,12 @@
         <p v-else>연결을 확인해주세요.</p>
       </div>
     </div>
+
+    <!-- 장이 열려있지 않을 때 -->
+    <div v-else class="market-closed">
+      <p>⚠ 현재는 장 운영 시간이 아닙니다.</p>
+      <p>실시간 체결 데이터는 오전 9시 ~ 오후 3시 30분에만 제공됩니다.</p>
+    </div>
   </div>
 </template>
 
@@ -70,6 +77,29 @@ const stockId = route.params.stockId
 const connected = ref(false)
 const trades = ref([])
 let eventSource = null
+
+const marketOpen = ref(true)
+
+const isMarketOpen = () => {
+  const now = new Date()
+  const koreaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
+  const hours = koreaTime.getHours()
+  const minutes = koreaTime.getMinutes()
+
+  // 09:00 ~ 15:30 사이에만 true
+  const openMinutes = hours * 60 + minutes
+  return openMinutes >= 540 && openMinutes <= 930
+}
+
+onMounted(() => {
+  marketOpen.value = isMarketOpen()
+
+  if (marketOpen.value) {
+    connectSSE()
+  } else {
+    console.log('[MARKET] 장이 열려있지 않습니다.')
+  }
+})
 
 // SSE 연결 설정
 const connectSSE = () => {
@@ -226,6 +256,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  color: white;
 }
 
 .header h2 {
@@ -258,13 +289,14 @@ onBeforeUnmount(() => {
   border: none;
   cursor: pointer;
   font-size: 14px;
-  color: #666;
+  color: white;
 }
 
 .tab.active {
   color: #000;
   border-bottom: 2px solid #000;
   font-weight: bold;
+  color: white;
 }
 
 .connection-status {
@@ -407,5 +439,14 @@ onBeforeUnmount(() => {
 
 .table-container::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+.market-closed {
+  text-align: center;
+  padding: 60px;
+  font-size: 14px;
+  color: #ddd; /* 기존: #888 → 더 밝게 */
+  background: #1c1c1c; /* 배경색도 살짝 바꿔주면 더 눈에 띔 */
+  border: 1px solid #444;
+  border-radius: 8px;
 }
 </style>
