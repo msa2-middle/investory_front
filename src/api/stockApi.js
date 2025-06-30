@@ -28,6 +28,9 @@ const stockApi = {
 
   // 9. 주가 정보 가져오기
   getStockPrice: (code) => publicApi.get(`/stock/${code}/price`),
+
+    // 10. 티커별 가격 히스토리 조회
+    getStockPriceHistory: (code) => publicApi.get(`/stock/${code}/history`),
 }
 
 export default stockApi
