@@ -1,0 +1,157 @@
+/* Alarm.css */
+
+/* ───────────────────────────
+   컨테이너 / 버튼 / 뱃지
+─────────────────────────── */
+.alarm-container {
+  position: relative;
+}
+
+.alarm-btn {
+  position: relative;
+  background: transparent;
+  border: 1px solid #374151;
+  color: #9ca3af;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.alarm-btn:hover {
+  background-color: #374151;
+  color: #ffffff;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 5px;
+  border-radius: 10px;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* ───────────────────────────
+   드롭다운(Alarm 전용)
+─────────────────────────── */
+.alarm-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 380px;            /* 기존 320px → 380px */
+  max-height: 480px;       /* 기존 400px → 480px */
+  background: #111827;     /* 더 짙은 배경으로 대비 향상 */
+  border: 1px solid #374151;
+  border-radius: 8px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+  margin-top: 6px;
+}
+
+/* 헤더(‘알림’·‘모두 읽음’) */
+.alarm-dropdown-menu .dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background: #1f2937;
+  border-bottom: 1px solid #374151;
+}
+.alarm-dropdown-menu .header-title {
+  font-weight: 600;
+  color: #f3f4f6;
+  font-size: 15px;
+}
+.alarm-dropdown-menu .read-all-btn {
+  background: transparent;
+  border: 1px solid #6b7280;
+  color: #d1d5db;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.alarm-dropdown-menu .read-all-btn:hover {
+  background: #6b7280;
+  color: #ffffff;
+}
+
+/* 알림 리스트 */
+.alarm-dropdown-menu .alarm-list {          /* ← 기존 */
+  max-height: 420px;
+  overflow-y: auto;
+  list-style: none;              /* ★ 추가: 기본 • 제거 */
+  padding: 0;                    /* ★ 추가 */
+}
+.alarm-dropdown-menu .no-alarms {
+  padding: 26px 18px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 15px;
+}
+
+/* 알림 아이템 */
+.alarm-dropdown-menu .alarm-item {
+  position: relative;
+  padding: 14px 20px;
+  border-bottom: 1px solid #374151;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+.alarm-dropdown-menu .alarm-item:hover {
+  background-color: #1e293b;
+}
+
+.alarm-dropdown-menu .alarm-item:last-child {
+  border-bottom: none;
+}
+/* 새 알림 강조 */
+.alarm-dropdown-menu .alarm-item.unread {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* 제거(슬라이드 아웃) 애니메이션 */
+.alarm-dropdown-menu .alarm-item.removing {
+  opacity: 0;
+  transform: translateX(100%);
+  max-height: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+/* 내용·시간·파란 점 */
+.alarm-dropdown-menu .alarm-content {
+  color: #e5e7eb;
+  font-size: 15px;
+  line-height: 1.45;
+  margin-bottom: 4px;
+}
+.alarm-dropdown-menu .alarm-time {
+  color: #94a3b8;
+  font-size: 13px;
+}
+.alarm-dropdown-menu .unread-dot {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  background: #3b82f6;
+  border-radius: 50%;
+}
