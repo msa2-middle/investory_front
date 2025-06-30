@@ -167,6 +167,8 @@ async function onEdit() {
     let msg = '수정 실패'
     if (e.response?.data?.message) {
       msg = e.response.data.message
+    } else if (e.response?.data) {
+      msg = typeof e.response.data === 'object' ? JSON.stringify(e.response.data) : e.response.data
     } else if (e.message) {
       msg = e.message
     }
@@ -187,6 +189,8 @@ async function onDelete() {
     let msg = '삭제 실패'
     if (e.response?.data?.message) {
       msg = e.response.data.message
+    } else if (e.response?.data) {
+      msg = typeof e.response.data === 'object' ? JSON.stringify(e.response.data) : e.response.data
     } else if (e.message) {
       msg = e.message
     }
@@ -209,7 +213,13 @@ async function toggleLike() {
     }
   } catch (e) {
     console.error('좋아요 처리 실패:', e)
-    alert('좋아요 처리에 실패했습니다.')
+    if (e.response?.data?.message) {
+      alert(e.response.data.message)
+    } else if (e.response?.data) {
+      alert(typeof e.response.data === 'object' ? JSON.stringify(e.response.data) : e.response.data)
+    } else {
+      alert('좋아요 처리에 실패했습니다.')
+    }
   }
 }
 
