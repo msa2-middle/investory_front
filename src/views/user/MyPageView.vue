@@ -400,7 +400,11 @@ function closeModal() {
   showEditModal.value = false
 }
 
-onMounted(fetchAll)
+onMounted(async () => {
+  if (localStorage.getItem('accessToken')) {
+    await fetchAll()
+  }
+})
 </script>
 
 
