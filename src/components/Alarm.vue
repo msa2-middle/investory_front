@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, onUnmounted } from 'vue'
 import { EventSourcePolyfill } from 'event-source-polyfill'
 import alarmApi from '@/api/alarmApi.js'
 import '../assets/Alarm.css'
@@ -265,9 +265,23 @@ function initializeSSE() {
   }
 }
 
+// 외부 클릭 감지 함수
+function handleClickOutside(event) {
+  const alarmContainer = document.querySelector('.alarm-container')
+  if (alarmContainer && !alarmContainer.contains(event.target)) {
+    dropdownOpen.value = false
+  }
+}
+
+// onUnmounted에 이벤트 리스너 제거
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
 onMounted(() => {
   fetchAlarms()
   initializeSSE()
+  document.addEventListener('click', handleClickOutside)
 })
 </script>
 
