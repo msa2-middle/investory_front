@@ -8,7 +8,6 @@
     <div v-else-if="error" style="color:red">{{ error }}</div>
     <div v-else>
       <LineChart :chartData="chartData" style="width:100%;max-width:1200px;height:400px;margin:0 auto 32px;" @point-click="onChartPointClick" />
-      <!-- <BarChart :chartData="chartDataVolume" style="width:100%;max-width:1200px;height:180px;margin:0 auto 24px;" /> -->
       <div class="table-scroll-wrap" ref="tableWrapRef" @scroll="onTableScroll">
         <table>
           <thead>
@@ -27,8 +26,8 @@
               <td>{{ item.openPrice }}</td>
               <td>{{ item.highPrice }}</td>
               <td>{{ item.lowPrice }}</td>
-              <td>{{ item.closePrice }}</td>
-              <td>{{ item.volume }}</td>
+              <td @click="onTableCellClick(item.tradeDate)" style="cursor:pointer;">{{ item.closePrice }}</td>
+              <td @click="onTableCellClick(item.tradeDate)" style="cursor:pointer;">{{ item.volume }}</td>
             </tr>
           </tbody>
         </table>
@@ -44,7 +43,6 @@ import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import stockApi from '@/api/stockApi'
 import LineChart from '@/components/LineChart.vue'
-import BarChart from '@/components/BarChart.vue'
 
 const route = useRoute()
 const stockId = route.params.stockId
@@ -90,24 +88,6 @@ const chartData = computed(() => {
       },
     ],
     y2Max: maxVolume * 8,
-  }
-})
-
-const chartDataVolume = computed(() => {
-  const arr = [...history.value].reverse()
-  return {
-    labels: arr.map(item => item.tradeDate),
-    datasets: [
-      {
-        label: '거래량',
-        data: arr.map(item => item.volume),
-        backgroundColor: 'rgba(139, 92, 246, 0.4)',
-        borderColor: 'rgba(139, 92, 246, 1)',
-        borderWidth: 1,
-        barPercentage: 0.7,
-        categoryPercentage: 0.7,
-      },
-    ],
   }
 })
 
@@ -169,6 +149,11 @@ async function scrollToDate() {
 }
 
 function onChartPointClick(date) {
+  searchDate.value = date
+  scrollToDate()
+}
+
+function onTableCellClick(date) {
   searchDate.value = date
   scrollToDate()
 }
