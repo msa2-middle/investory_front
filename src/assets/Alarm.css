@@ -50,7 +50,7 @@
   position: absolute;
   top: 100%;
   right: 0;
-  width: 310px;            /* 기존 320px → 380px */
+  width: 360px;            /* 기존 320px → 380px */
   max-height: 480px;       /* 기존 400px → 480px */
   background: #111827;     /* 더 짙은 배경으로 대비 향상 */
   border: 1px solid #374151;
