@@ -1,43 +1,39 @@
-<!-- 손익계산서 -->
 <template>
   <div class="income-statement">
-    <h2>손익계산서</h2>
+    <h2>📊 손익계산서</h2>
 
-    <div v-if="loading">데이터를 불러오는 중...</div>
+    <div v-if="loading" class="loading">데이터를 불러오는 중...</div>
 
     <div v-else-if="statements.length > 0">
+      <!-- ✅ 분기 선택 -->
+      <label>
+        분기 선택:
+        <select v-model="selectedYymm">
+          <option value="">전체 보기</option>
+          <option v-for="s in statements" :key="s.stacYymm" :value="s.stacYymm">
+            {{ s.stacYymm }}
+          </option>
+        </select>
+      </label>
+
+      <!-- ✅ 차트 -->
+      <BarChart v-if="chartData" :chart-data="chartData" />
+
+      <!-- ✅ 테이블 -->
       <table>
         <thead>
           <tr>
             <th>결산 년월</th>
             <th>매출액</th>
-            <th>매출 원가</th>
-            <th>매출 총 이익</th>
-            <th>감가상각비</th>
-            <th>판매 및 관리비</th>
             <th>영업 이익</th>
-            <th>영업 외 수익</th>
-            <th>영업 외 비용</th>
-            <th>경상 이익</th>
-            <th>특별 이익</th>
-            <th>특별 손실</th>
             <th>당기순이익</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in statements" :key="item.stacYymm">
+          <tr v-for="item in filteredStatements" :key="item.stacYymm">
             <td>{{ item.stacYymm }}</td>
             <td>{{ item.saleAccount }}</td>
-            <td>{{ item.saleCost }}</td>
-            <td>{{ item.saleTotlPrfi }}</td>
-            <td>{{ item.deprCost }}</td>
-            <td>{{ item.sellMang }}</td>
             <td>{{ item.bsopPrti }}</td>
-            <td>{{ item.bsopNonErnn }}</td>
-            <td>{{ item.bsopNonExpn }}</td>
-            <td>{{ item.opPrfi }}</td>
-            <td>{{ item.specPrfi }}</td>
-            <td>{{ item.specLoss }}</td>
             <td>{{ item.thtrNtin }}</td>
           </tr>
         </tbody>
@@ -51,13 +47,46 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import stockApi from '@/api/stockApi'
+import BarChart from '@/components/BarChart.vue'
 
 const route = useRoute()
 const loading = ref(true)
 const statements = ref([])
+const selectedYymm = ref('')
+
+const filteredStatements = computed(() => {
+  return selectedYymm.value
+    ? statements.value.filter((s) => s.stacYymm === selectedYymm.value)
+    : statements.value
+})
+
+const chartData = computed(() => {
+  if (statements.value.length === 0) return null
+
+  return {
+    labels: statements.value.map((s) => s.stacYymm),
+    datasets: [
+      {
+        label: '매출액',
+        data: statements.value.map((s) => Number(s.saleAccount)),
+        backgroundColor: '#60a5fa',
+      },
+      {
+        label: '영업이익',
+        data: statements.value.map((s) => Number(s.bsopPrti)),
+        backgroundColor: '#34d399',
+      },
+      {
+        label: '당기순이익',
+        data: statements.value.map((s) => Number(s.thtrNtin)),
+        backgroundColor: '#f87171',
+      },
+    ],
+  }
+})
 
 async function fetchIncomeStatement() {
   try {
@@ -75,31 +104,35 @@ onMounted(fetchIncomeStatement)
 
 <style scoped>
 .income-statement {
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 40px auto;
   padding: 30px;
-  background: #1d1e2f;
-  color: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  overflow-x: auto;
+  background: #f9fafb;
+  color: #1f2937;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+label {
+  display: block;
+  margin-bottom: 16px;
+  font-weight: bold;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
+  margin-top: 24px;
 }
 
 th,
 td {
-  border: 1px solid #555;
+  border: 1px solid #ddd;
   padding: 10px;
   text-align: center;
 }
 
 th {
-  background-color: #2c2f45;
-  font-weight: bold;
+  background-color: #e5e7eb;
 }
 </style>
