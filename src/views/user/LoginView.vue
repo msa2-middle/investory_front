@@ -47,11 +47,14 @@ async function login() {
   try {
     const response = await userApi.login(form.value)
     const token = response.data.accessToken
+    const refreshToken = response.data.refreshToken
+
     authStore.setToken(token)
     authStore.setUserName(response.data.name)
 
     localStorage.setItem('accessToken', token)
     localStorage.setItem('userName', response.data.name)
+    localStorage.setItem('refreshToken', refreshToken)
 
     alert('로그인 성공!')
     router.push('/')
