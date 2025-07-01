@@ -1,6 +1,15 @@
 <template>
   <div class="stock-price-history-view">
-    <h2>가격 히스토리: {{ stockId }}</h2>
+    <div class="stock-header">
+
+      <div v-if="stockName" class="stock-title-bar">
+        <span class="stock-name-main">{{ stockName }}</span>
+        <span class="stock-ticker-main">({{ stockId }})</span>
+        <div v-if="stockPrice" class="stock-price-top">현재가: {{ Number(stockPrice).toLocaleString() }}원</div>
+
+      </div>
+    </div>
+
     <div class="date-search-wrap">
       <span v-if="notFoundMsg" class="not-found-msg">{{ notFoundMsg }}</span>
     </div>
@@ -47,6 +56,9 @@ import LineChart from '@/components/LineChart.vue'
 const route = useRoute()
 const stockId = route.params.stockId
 const history = ref([])
+const stockName = ref('')
+const stockPrice = ref('')
+
 const loading = ref(true)
 const error = ref('')
 const page = ref(1)
@@ -91,8 +103,31 @@ const chartData = computed(() => {
   }
 })
 
+//주가 데이터 가져오기
+async function fetchStockInfo() {
+  try {
+    const res = await stockApi.getStockInfo(stockId)
+    stockName.value = res.data.prdtName || ''
+
+    // 주가 정보도 함께 불러오기
+    try {
+      const priceRes = await stockApi.getStockPrice(stockId)
+      stockPrice.value = priceRes.data.output?.stck_prpr || ''
+    } catch {
+      stockPrice.value = ''
+    }
+  } catch {
+    stockName.value = ''
+    stockPrice.value = ''
+  }
+}
+
+// 컴포넌트가 마운트될 때 종목 정보와 가격 히스토리를 모두 로드
 onMounted(async () => {
   try {
+
+    await fetchStockInfo()
+
     const res = await stockApi.getStockPriceHistory(stockId)
     history.value = res.data
     visibleHistory.value = history.value.slice(0, pageSize)
@@ -160,6 +195,32 @@ function onTableCellClick(date) {
 </script>
 
 <style scoped>
+.stock-header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+.stock-price-top {
+  text-align: center;
+  font-size: 1.0rem;
+  color: #22d3ee;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+.stock-title-bar {
+  margin-bottom: 16px;
+  text-align: center;
+}
+.stock-name-main {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-right: 8px;
+  color: #fff;
+}
+.stock-ticker-main {
+  font-size: 1.0rem;
+  color: #60a5fa;
+  margin-right: 12px;
+}
 .table-scroll-wrap {
   max-height: 400px;
   overflow-y: auto;

@@ -235,6 +235,7 @@ function formatDate(dateString) {
   })
 }
 
+// 현재 주가 가져오기
 async function fetchStockInfo() {
   try {
     const res = await stockApi.getStockInfo(stockId)
