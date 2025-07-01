@@ -8,6 +8,7 @@ import FinancialRatioView from '@/views/StockInfo/FinancialRatioView.vue'
 import ProfitRatioView from '@/views/StockInfo/ProfitRatioView.vue'
 import StabilityRatioView from '@/views/StockInfo/StabilityRatioView.vue'
 import GrowthRatioView from '@/views/StockInfo/GrowthRatioView.vue'
+import StockPriceHistoryView from '@/views/StockInfo/StockPriceHistoryView.vue'
 
 import LoginView from '@/views/user/LoginView.vue'
 import SignupView from '@/views/user/SignupView.vue'
@@ -135,6 +136,11 @@ const router = createRouter({
           path: 'community',
           name: 'community',
           component: PostView,
+        },
+        {
+          path: 'history',
+          name: 'stockPriceHistory',
+          component: StockPriceHistoryView,
         },
       ],
     },

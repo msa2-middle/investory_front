@@ -156,14 +156,14 @@ export default {
   data() {
     return {
       currentTime: '',
-      activeTab: 'volume-rank',
+      activeTab: 'market-cap-rank',
       activePeriod: '1일',
       tabs: [
+        { id: 'market-cap-rank', name: '시가총액' },
         { id: 'volume-rank', name: '거래량' },
         { id: 'trading-value-rank', name: '거래대금' },
         { id: 'price-up-rank', name: '급상승' },
         { id: 'price-down-rank', name: '급하락' },
-        { id: 'market-cap-rank', name: '시가총액' }
       ],
       timePeriods: ['1일', '1주일', '1개월', '3개월', '6개월', '1년'],
       stockData: [],
