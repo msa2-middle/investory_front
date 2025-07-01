@@ -24,7 +24,11 @@ onMounted(() => {
       localStorage.setItem('userName', userName)
     }
     localStorage.setItem('accessToken', token)
-    router.push('/mypage')
+    if (authStore.role === 'ADMIN') {
+    router.push('/admin')
+  } else {
+    router.push('/')
+  }
   } else {
     alert("소셜 로그인 실패")
     router.push('/login')
