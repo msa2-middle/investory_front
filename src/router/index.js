@@ -12,6 +12,7 @@ import GrowthRatioView from '@/views/StockInfo/GrowthRatioView.vue'
 import LoginView from '@/views/user/LoginView.vue'
 import SignupView from '@/views/user/SignupView.vue'
 import MyPageView from '@/views/user/MyPageView.vue'
+import MyAllActivityView from '@/views/user/MyAllActivityView.vue'
 import RedirectView from '@/views/user/RedirectView.vue'
 import PasswordResetView from '@/views/user/PasswordResetView.vue'
 
@@ -57,6 +58,11 @@ const router = createRouter({
       path: '/mypage',
       name: 'mypage',
       component: MyPageView,
+    },
+    {
+      path: '/my-activities',
+      name: 'myAllActivity',
+      component: MyAllActivityView,
     },
     {
       path: '/stock/:stockId/price',

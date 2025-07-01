@@ -15,7 +15,24 @@
 
         <!-- 오른쪽: 버튼 -->
         <div>
-          <button class="btn btn-sm btn-outline-primary" @click="showEditModal = true">내 정보 수정</button>
+          <div class="dropdown">
+  <button
+    class="btn btn-sm btn-outline-primary dropdown-toggle"
+    type="button"
+    data-bs-toggle="dropdown"
+    aria-expanded="false"
+  >
+    내 정보 관리
+  </button>
+  <ul class="dropdown-menu">
+    <li>
+      <a class="dropdown-item" href="#" @click.prevent="openEditModal">내 정보 수정</a>
+    </li>
+    <li>
+      <a class="dropdown-item" href="#" @click.prevent="openPasswordModal">비밀번호 변경</a>
+    </li>
+  </ul>
+</div>
         </div>
       </div>
     </div>
@@ -63,12 +80,9 @@
 
           <!-- 게시글이 5개 초과일 때만 전체 보기 링크 -->
           <div v-if="myPosts.length > 5" class="text-center mt-3">
-            <router-link
-              to="/my-posts"
-              class="text-muted"
-              style="font-weight: bold; text-decoration: none;">
-              작성한 게시글 전체 보기 &gt;
-            </router-link>
+            <router-link to="/my-activities" class="text-muted" style="font-weight: bold; text-decoration: none;">
+      활동 전체 보기 &gt;
+    </router-link>
           </div>
         </div>
 
@@ -174,6 +188,71 @@
         </form>
       </div>
     </div>
+
+    <!-- 비밀번호 변경 모달 -->
+<div v-if="showPasswordModal" class="custom-modal">
+  <div class="custom-modal-content">
+    <div class="d-flex justify-content-between mb-3">
+      <h5>비밀번호 변경</h5>
+      <button class="btn-close" @click="closePasswordModal"></button>
+    </div>
+
+    <form @submit.prevent="updatePassword">
+      <div class="mb-3">
+        <label class="form-label">현재 비밀번호</label>
+        <input
+          v-model="passwordForm.currentPassword"
+          type="password"
+          class="form-control"
+          required
+        >
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">새 비밀번호</label>
+        <input
+          v-model="passwordForm.newPassword"
+          type="password"
+          class="form-control"
+          required
+        >
+        <p
+          v-if="passwordForm.newPassword"
+          class="password-strength"
+          :class="passwordChangeStrengthClass"
+        >
+          {{ passwordChangeStrengthMessage }}
+        </p>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">새 비밀번호 확인</label>
+        <input
+          v-model="passwordForm.confirmPassword"
+          type="password"
+          class="form-control"
+          required
+        >
+        <p
+          v-if="passwordMismatchMessage"
+          class="password-strength weak"
+        >
+          {{ passwordMismatchMessage }}
+        </p>
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-primary w-100"
+        :disabled="!isPasswordFormValid"
+      >
+        변경하기
+      </button>
+    </form>
+  </div>
+</div>
+
+
   </div>
 </template>
 
@@ -186,10 +265,21 @@ const myPosts = ref([])
 const myComments = ref([])
 const likedPosts = ref([])
 const likedComments = ref([])
-const showEditModal = ref(false)
 const activeTab = ref('posts')
 
 const editForm = ref({ name: '', phone: '' })
+
+// 모달 제어 ref 추가
+const showEditModal = ref(false)
+const showPasswordModal = ref(false)
+
+function openEditModal() {
+  showEditModal.value = true
+}
+
+function openPasswordModal() {
+  showPasswordModal.value = true
+}
 
 const statMap = computed(() => ({
   '내 게시글': myPosts.value.length,
@@ -225,12 +315,96 @@ async function updateInfo() {
     alert('수정 실패')
   }
 }
+// 비밀번호 변경 폼 데이터
+const passwordForm = ref({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
+// 특수문자 정규식
+const specialCharRegex = new RegExp(/[!@#$%^&*()_\-=\[\]{};':"\\|,.<>\/?]/)
+
+// 비밀번호 강도 메시지
+const passwordChangeStrengthMessage = computed(() => {
+  const pwd = passwordForm.value.newPassword
+  let score = 0
+  if (pwd.length >= 8) score++
+  if (/[a-zA-Z]/.test(pwd)) score++
+  if (/\d/.test(pwd)) score++
+  if (specialCharRegex.test(pwd)) score++
+
+  if (!pwd) return ''
+  if (score <= 2) return '비밀번호가 너무 약해요'
+  if (score === 3) return '적절한 비밀번호예요'
+  return '강력한 비밀번호입니다!'
+})
+
+const passwordChangeStrengthClass = computed(() => {
+  const msg = passwordChangeStrengthMessage.value
+  if (msg.includes('약')) return 'weak'
+  if (msg.includes('적절')) return 'medium'
+  if (msg.includes('강력')) return 'strong'
+  return ''
+})
+
+// 비밀번호 일치 여부
+const passwordsMatch = computed(() => {
+  return (
+    passwordForm.value.newPassword === passwordForm.value.confirmPassword
+  )
+})
+
+const passwordMismatchMessage = computed(() => {
+  if (!passwordForm.value.confirmPassword) return ''
+  if (passwordsMatch.value) return ''
+  return '새 비밀번호와 확인이 일치하지 않습니다.'
+})
+
+// 폼 전체 유효성 검사
+const isPasswordFormValid = computed(() => {
+  return (
+    passwordForm.value.currentPassword &&
+    passwordForm.value.newPassword &&
+    passwordForm.value.confirmPassword &&
+    passwordsMatch.value &&
+    passwordChangeStrengthMessage.value !== '비밀번호가 너무 약해요'
+  )
+})
+function closePasswordModal() {
+  showPasswordModal.value = false
+  passwordForm.value.currentPassword = ''
+  passwordForm.value.newPassword = ''
+  passwordForm.value.confirmPassword = ''
+}
+// 비밀번호 변경 API 호출
+async function updatePassword() {
+  if (!passwordsMatch.value) {
+    alert('새 비밀번호가 일치하지 않습니다.')
+    return
+  }
+
+  try {
+    await userApi.updatePassword({
+      currentPassword: passwordForm.value.currentPassword,
+      newPassword: passwordForm.value.newPassword
+    })
+    alert('비밀번호가 변경되었습니다.')
+    closePasswordModal()
+  } catch {
+    alert('비밀번호 변경 실패')
+  }
+}
 
 function closeModal() {
   showEditModal.value = false
 }
 
-onMounted(fetchAll)
+onMounted(async () => {
+  if (localStorage.getItem('accessToken')) {
+    await fetchAll()
+  }
+})
 </script>
 
 
@@ -285,5 +459,17 @@ onMounted(fetchAll)
   width: 400px;
   max-width: 90%;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.password-strength.weak {
+  color: #f87171; /* 빨강 */
+}
+
+.password-strength.medium {
+  color: #facc15; /* 노랑 */
+}
+
+.password-strength.strong {
+  color: #4ade80; /* 초록 */
 }
 </style>
