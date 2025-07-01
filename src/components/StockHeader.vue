@@ -30,6 +30,12 @@
                 <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
+            <ul v-if="showAutocomplete && searchResults.length > 0" class="autocomplete-list">
+              <li v-for="item in searchResults" :key="item.ticker || item.code" class="autocomplete-item" @mousedown.prevent="goToStockDetail(item)">
+                <span class="autocomplete-stockId">{{ item.stockId }}</span>
+                <span class="autocomplete-stockName">{{ item.stockName }}</span>
+              </li>
+            </ul>
           </div>
         </div>
 
@@ -74,6 +80,7 @@ import { ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import Alarm from '@/components/Alarm.vue'
+import stockApi from '@/api/stockApi'
 
 const dropdownOpen = ref(false)
 const authStore = useAuthStore() // 전역 로그인 상태 (Pinia)
@@ -91,14 +98,46 @@ watch(
 // 검색창 상태 (반응형 상태)
 const searchQuery = ref('')
 const isSearchFocused = ref(false)
+const searchResults = ref([])
+const showAutocomplete = ref(false)
+let searchTimeout = null
 
-// 검색창 이벤트
+// 자동완성 API 호출
+async function fetchAutocomplete() {
+  if (!searchQuery.value.trim()) {
+    searchResults.value = []
+    showAutocomplete.value = false
+    return
+  }
+  try {
+    const res = await stockApi.searchStocks(searchQuery.value.trim(), 10)
+    searchResults.value = res.data || []
+    showAutocomplete.value = true
+  } catch {
+    searchResults.value = []
+    showAutocomplete.value = false
+  }
+}
+
+// 검색창 입력시 자동완성
+watch(searchQuery, (val) => {
+  clearTimeout(searchTimeout)
+  if (!val.trim()) {
+    searchResults.value = []
+    showAutocomplete.value = false
+    return
+  }
+  searchTimeout = setTimeout(fetchAutocomplete, 200)
+})
+
 function onSearchFocus() {
   isSearchFocused.value = true
+  if (searchResults.value.length > 0) showAutocomplete.value = true
 }
 
 function onSearchBlur() {
   isSearchFocused.value = false
+  setTimeout(() => { showAutocomplete.value = false }, 150)
 }
 
 function toggleDropdown() {
@@ -126,6 +165,13 @@ function performSearch() {
     router.push(`/stock/${ticker}/stock-info`);
     searchQuery.value = ''; // 검색 후 입력창 초기화
   }
+}
+
+// 자동완성 항목 클릭 시 상세페이지 이동
+function goToStockDetail(stock) {
+  router.push(`/stock/${stock.stockId}/stock-info`)
+  searchQuery.value = ''
+  showAutocomplete.value = false
 }
 </script>
 
@@ -350,5 +396,55 @@ function performSearch() {
   .search-input {
     font-size: 16px; /* iOS에서 줌 방지 */
   }
+}
+
+.autocomplete-list {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 40px;
+  background: #23263a;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  z-index: 100;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.autocomplete-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  transition: background 0.15s;
+}
+.autocomplete-item:hover {
+  background: #374151;
+}
+.autocomplete-ticker {
+  font-weight: bold;
+  color: #60a5fa;
+  margin-right: 8px;
+}
+.autocomplete-name {
+  color: #fff;
+  font-size: 1rem;
+}
+.autocomplete-stockId {
+  font-weight: bold;
+  color: #60a5fa;
+  font-size: .7rem;
+  margin-right: 10px;
+  letter-spacing: 1px;
+}
+.autocomplete-stockName {
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
 }
 </style>
