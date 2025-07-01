@@ -7,6 +7,12 @@
       >가격/호가</router-link
     >
     <router-link
+      :to="`/stock/${stockId}/history`"
+      class="tab-btn"
+      :class="{ active: isActive('history') }"
+      >가격추이</router-link
+    >
+    <router-link
       :to="`/stock/${stockId}/stock-info`"
       class="tab-btn"
       :class="{ active: isActive('stock-info') }"
@@ -32,6 +38,9 @@ function isActive(tab) {
 
   if (tab === 'price') {
     return path.includes('/price')
+  }
+  if (tab === 'history') {
+    return path.includes('/history')
   }
   if (tab === 'stock-info') {
     return path.includes('/stock-info')
