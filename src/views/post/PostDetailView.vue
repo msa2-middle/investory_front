@@ -12,6 +12,10 @@
       <div class="post-content">{{ post.content }}</div>
       <div class="post-stats">
         <div class="like-row">
+          <span class="view-count-detail">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;margin-right:2px;"><path d="M10 3C5 3 1.73 7.11 1.13 7.93a1.5 1.5 0 0 0 0 1.85C1.73 10.89 5 15 10 15s8.27-4.11 8.87-4.93a1.5 1.5 0 0 0 0-1.85C18.27 7.11 15 3 10 3Zm0 10c-3.31 0-6.13-2.94-7.19-4C3.87 7.94 6.69 5 10 5s6.13 2.94 7.19 4C16.13 10.06 13.31 13 10 13Zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z" fill="#a0aec0"/></svg>
+            {{ viewCount }}
+          </span>
           <span
             class="like-heart"
             :class="{ liked: liked }"
@@ -68,6 +72,7 @@ const editContent = ref('')
 const liked = ref(false)
 const postAuthorName = ref('')
 const commentCount = ref(0)
+const viewCount = ref(0)
 
 async function fetchPost() {
   isLoading.value = true
@@ -108,6 +113,15 @@ async function fetchPost() {
     } catch (authorError) {
       console.warn('작성자 정보 조회 실패:', authorError)
       postAuthorName.value = '익명'
+    }
+
+    // 조회수 조회
+    try {
+      const viewRes = await postApi.getPostViewCount(postId)
+      viewCount.value = viewRes.data || 0
+    } catch (viewError) {
+      console.warn('조회수 조회 실패:', viewError)
+      viewCount.value = 0
     }
 
     // 좋아요 상태 조회
@@ -396,5 +410,14 @@ onMounted(() => {
   font-weight: bold;
   margin-bottom: 20px;
   color: #e2e8f0;
+}
+
+.view-count-detail {
+  font-size: 0.88rem;
+  color: #a0aec0;
+  margin-right: 10px;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
 }
 </style>
