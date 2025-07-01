@@ -19,39 +19,41 @@
       <!-- ✅ 자산/부채/자본 시각화 -->
       <BarChart v-if="chartData" :chart-data="chartData" />
 
-      <!-- ✅ 테이블 -->
-      <table>
-        <thead>
-          <tr>
-            <th>결산년월</th>
-            <th>유동자산</th>
-            <th>고정자산</th>
-            <th>자산총계</th>
-            <th>유동부채</th>
-            <th>고정부채</th>
-            <th>부채총계</th>
-            <th>자본금</th>
-            <th>자본잉여금</th>
-            <th>이익잉여금</th>
-            <th>자본총계</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="sheet in filteredSheets" :key="sheet.stacYymm">
-            <td>{{ sheet.stacYymm }}</td>
-            <td>{{ sheet.cras }}</td>
-            <td>{{ sheet.fxas }}</td>
-            <td>{{ sheet.totalAset }}</td>
-            <td>{{ sheet.flowLblt }}</td>
-            <td>{{ sheet.fixLblt }}</td>
-            <td>{{ sheet.totalLblt }}</td>
-            <td>{{ sheet.cpfn }}</td>
-            <td>{{ sheet.cfpSurp }}</td>
-            <td>{{ sheet.prfiSurp }}</td>
-            <td>{{ sheet.totalCptl }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <!-- ✅ 테이블 (컨테이너로 감싸기) -->
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>결산<br />년월</th>
+              <th>유동<br />자산</th>
+              <th>고정<br />자산</th>
+              <th>자산<br />총계</th>
+              <th>유동<br />부채</th>
+              <th>고정<br />부채</th>
+              <th>부채<br />총계</th>
+              <th>자본금</th>
+              <th>자본<br />잉여금</th>
+              <th>이익<br />잉여금</th>
+              <th>자본<br />총계</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="sheet in filteredSheets" :key="sheet.stacYymm">
+              <td>{{ sheet.stacYymm }}</td>
+              <td>{{ formatNumber(sheet.cras) }}</td>
+              <td>{{ formatNumber(sheet.fxas) }}</td>
+              <td>{{ formatNumber(sheet.totalAset) }}</td>
+              <td>{{ formatNumber(sheet.flowLblt) }}</td>
+              <td>{{ formatNumber(sheet.fixLblt) }}</td>
+              <td>{{ formatNumber(sheet.totalLblt) }}</td>
+              <td>{{ formatNumber(sheet.cpfn) }}</td>
+              <td>{{ formatNumber(sheet.cfpSurp) }}</td>
+              <td>{{ formatNumber(sheet.prfiSurp) }}</td>
+              <td>{{ formatNumber(sheet.totalCptl) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <div v-else>
@@ -102,6 +104,24 @@ const chartData = computed(() => {
   }
 })
 
+// 숫자 포맷팅 함수
+function formatNumber(value) {
+  if (!value || value === '0') return '-'
+  const num = Number(value)
+  if (isNaN(num)) return value
+
+  // 억 단위로 변환 (한국 기준)
+  if (num >= 100000000) {
+    return Math.round(num / 100000000).toLocaleString() + '억'
+  }
+  // 만 단위로 변환
+  else if (num >= 10000) {
+    return Math.round(num / 10000).toLocaleString() + '만'
+  }
+  // 그 외는 일반 숫자
+  return num.toLocaleString()
+}
+
 async function fetchBalanceSheet() {
   try {
     const response = await stockApi.getBalanceSheet(route.params.stockId)
@@ -118,13 +138,14 @@ onMounted(fetchBalanceSheet)
 
 <style scoped>
 .balance-sheet {
-  max-width: 1100px;
+  max-width: 1200px; /* 너비 증가 */
   margin: 50px auto;
   padding: 30px;
   background: #f8fafc;
   color: #111827;
   border-radius: 16px;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+  overflow-x: auto; /* 가로 스크롤 추가 */
 }
 
 label {
@@ -133,20 +154,107 @@ label {
   font-weight: bold;
 }
 
+/* 테이블 컨테이너 */
+.table-container {
+  overflow-x: auto;
+  margin-top: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 table {
   width: 100%;
+  min-width: 1000px; /* 최소 너비 설정 */
   border-collapse: collapse;
-  margin-top: 24px;
+  background: white;
 }
 
 th,
 td {
-  border: 1px solid #ddd;
-  padding: 10px;
+  border: 1px solid #e5e7eb;
+  padding: 12px 8px;
   text-align: center;
+  white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+  font-size: 14px;
 }
 
 th {
-  background-color: #e5e7eb;
+  background-color: #f3f4f6;
+  font-weight: 600;
+  color: #374151;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* 작은 헤더 텍스트 */
+th {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+/* 숫자 포맷팅 */
+td:not(:first-child) {
+  font-family: 'Courier New', monospace;
+  text-align: right;
+  padding-right: 12px;
+}
+
+/* 첫 번째 열 (날짜) 스타일 */
+td:first-child {
+  font-weight: 600;
+  background-color: #f9fafb;
+  position: sticky;
+  left: 0;
+  z-index: 5;
+}
+
+th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 15;
+  background-color: #f3f4f6;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .balance-sheet {
+    margin: 20px;
+    padding: 20px;
+  }
+
+  th,
+  td {
+    padding: 8px 4px;
+    font-size: 11px;
+  }
+
+  table {
+    min-width: 800px;
+  }
+}
+
+/* 로딩 및 에러 상태 */
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #6b7280;
+}
+
+/* 선택 박스 스타일 */
+select {
+  padding: 8px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  font-size: 14px;
+  margin-left: 8px;
+}
+
+select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 </style>
