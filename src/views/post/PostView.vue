@@ -43,6 +43,7 @@
                 :disabled="post.likeLoading"
               >{{ post.liked ? '♥' : '♡' }}</span>
               <span class="like-count">{{ post.likeCount }}</span>
+              <span class="view-count">조회수: {{ post.viewCount }}</span>
             </div>
             <div class="post-comment">
               <span
@@ -99,6 +100,7 @@ async function fetchPosts() {
         let authorName = '익명'
         let commentCount = 0
         let likeCount = 0
+        let viewCount = 0
 
         try {
           const res = await postApi.hasUserLiked(post.postId)
@@ -128,12 +130,20 @@ async function fetchPosts() {
           likeCount = 0
         }
 
+        try {
+          const viewRes = await postApi.getPostViewCount(post.postId)
+          viewCount = viewRes.data || 0
+        } catch {
+          viewCount = 0
+        }
+
         return {
           ...post,
           liked,
           authorName,
           commentCount,
           likeCount,
+          viewCount,
           showComments: false
         }
       })
@@ -472,5 +482,11 @@ h2 {
   color: #22d3ee;
   font-weight: bold;
   margin-bottom: 4px;
+}
+
+.view-count {
+  font-size: 0.85rem;
+  color: #a0aec0;
+  margin-left: 10px;
 }
 </style>
