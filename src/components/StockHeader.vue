@@ -19,7 +19,7 @@
             <input
               type="text"
               class="search-input"
-              placeholder="종목코드 검색"
+              placeholder="종목명/종목코드 검색"
               v-model="searchQuery"
               @focus="onSearchFocus"
               @blur="onSearchBlur"
@@ -110,7 +110,7 @@ async function fetchAutocomplete() {
     return
   }
   try {
-    const res = await stockApi.searchStocks(searchQuery.value.trim(), 10)
+    const res = await stockApi.searchStocks(searchQuery.value.trim(), 100)
     searchResults.value = res.data || []
     showAutocomplete.value = true
   } catch {

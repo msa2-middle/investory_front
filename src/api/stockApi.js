@@ -30,7 +30,7 @@ const stockApi = {
   getStockPrice: (code) => publicApi.get(`/stock/${code}/price`),
 
   // 종목 검색 (자동완성)
-  searchStocks: (keyword, limit = 10) => publicApi.get(`/stock/search`, { params: { keyword, limit } }),
+  searchStocks: (keyword, limit = 100) => publicApi.get(`/stock/search`, { params: { keyword, limit } }),
 }
 
 export default stockApi
