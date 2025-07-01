@@ -46,12 +46,14 @@
 
 <script setup>
 import { computed, onMounted, ref, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { EventSourcePolyfill } from 'event-source-polyfill'
 import alarmApi from '@/api/alarmApi.js'
 import '../assets/Alarm.css'
 
+const router = useRouter()
 const token = localStorage.getItem('accessToken')
-const alarms = ref([]) // 전체 알람 리스트 (id, content, isRead, createdAt 포함)
+const alarms = ref([]) // 전체 알람 리스트 (id, content, isRead, createdAt, targetUrl 포함)
 const dropdownOpen = ref(false)
 
 // 읽지 않은 알람만 필터링 (isRead가 integer 타입: 0=안읽음, 1=읽음)
@@ -83,6 +85,7 @@ function addNotification(alarmData) {
     isRead: 0, // 0 = 읽지 않음
     isRemoving: false,
     createdAt: alarmData.createdAt || new Date().toISOString(),
+    targetUrl: alarmData.targetUrl, // targetUrl 추가
     type: alarmData.type,
     user: alarmData.user
   }
@@ -121,6 +124,7 @@ async function fetchAlarms() {
         isRead: alarm.isRead, // isRead 그대로 사용
         isRemoving: false,
         createdAt: alarm.createdAt || new Date().toISOString(), // null인 경우 현재 시간 사용
+        targetUrl: alarm.targetUrl, // targetUrl 추가
         type: alarm.type,
         user: alarm.user
       }
@@ -212,6 +216,27 @@ async function handleReadOne(alarm) {
         // 강제로 반응성 트리거 (필요한 경우)
         alarms.value = [...alarms.value]
       }
+
+      // 읽음 처리 완료 후 페이지 이동
+      if (alarm.targetUrl) {
+        console.log('페이지 이동:', alarm.targetUrl)
+
+        try {
+          // 드롭다운 닫기
+          dropdownOpen.value = false
+
+          // targetUrl로 라우팅
+          router.push(alarm.targetUrl)
+        } catch (routerError) {
+          console.error('라우팅 에러:', routerError)
+          console.error('잘못된 URL:', alarm.targetUrl)
+
+          // 라우팅 실패 시 사용자에게 알림 (선택사항)
+          alert('해당 페이지로 이동할 수 없습니다.')
+        }
+      } else {
+        console.warn('targetUrl이 없습니다:', alarm)
+      }
     }, 300)
 
     console.log('=== 알람 클릭 완료 ===')
@@ -263,6 +288,9 @@ function initializeSSE() {
   eventSource.onerror = (e) => {
     console.error('SSE 에러:', e)
   }
+
+  // 컴포넌트 언마운트 시 정리를 위해 저장
+  return eventSource
 }
 
 // 외부 클릭 감지 함수
@@ -273,14 +301,19 @@ function handleClickOutside(event) {
   }
 }
 
-// onUnmounted에 이벤트 리스너 제거
+let eventSource = null
+
+// onUnmounted에 이벤트 리스너 제거 및 SSE 연결 정리
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  if (eventSource) {
+    eventSource.close()
+  }
 })
 
 onMounted(() => {
   fetchAlarms()
-  initializeSSE()
+  eventSource = initializeSSE()
   document.addEventListener('click', handleClickOutside)
 })
 </script>
@@ -288,4 +321,3 @@ onMounted(() => {
 <style scoped>
 
 </style>
-
