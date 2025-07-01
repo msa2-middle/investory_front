@@ -42,7 +42,7 @@
                 @click.stop="toggleLike(post)"
                 :disabled="post.likeLoading"
               >{{ post.liked ? '♥' : '♡' }}</span>
-              <span class="like-count">{{ post.likeCount || 0 }}</span>
+              <span class="like-count">{{ post.likeCount }}</span>
             </div>
             <div class="post-comment">
               <span
@@ -93,11 +93,12 @@ async function fetchPosts() {
   try {
     const response = await postApi.getPostsByStock(stockId)
     // 각 게시글에 대해 hasUserLiked, 작성자 이름, 댓글 수 동기화
-    const postsWithDetails = await Promise.all(
+    const postsWithLikeAndAuthor = await Promise.all(
       (response.data || []).map(async (post) => {
         let liked = false
         let authorName = '익명'
         let commentCount = 0
+        let likeCount = 0
 
         try {
           const res = await postApi.hasUserLiked(post.postId)
@@ -120,16 +121,24 @@ async function fetchPosts() {
           commentCount = 0
         }
 
+        try {
+          const likeRes = await postApi.getPostLikeCount(post.postId)
+          likeCount = likeRes.data || 0
+        } catch {
+          likeCount = 0
+        }
+
         return {
           ...post,
           liked,
           authorName,
           commentCount,
+          likeCount,
           showComments: false
         }
       })
     )
-    posts.value = postsWithDetails.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    posts.value = postsWithLikeAndAuthor.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   } catch {
     // error.value = '게시글을 불러오는데 실패했습니다.'
   } finally {
