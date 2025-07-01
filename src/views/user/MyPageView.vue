@@ -31,6 +31,11 @@
     <li>
       <a class="dropdown-item" href="#" @click.prevent="openPasswordModal">비밀번호 변경</a>
     </li>
+    <li>
+      <a class="dropdown-item text-danger" href="#" @click.prevent="openWithdrawModal">
+        회원 탈퇴
+      </a>
+  </li>
   </ul>
 </div>
         </div>
@@ -252,6 +257,41 @@
   </div>
 </div>
 
+<!-- 회원 탈퇴 모달 -->
+<div v-if="showWithdrawModal" class="custom-modal">
+  <div class="custom-modal-content">
+    <div class="d-flex justify-content-between mb-3">
+      <h5 style="color: #333;">회원 탈퇴</h5>
+      <button class="btn-close" @click="closeWithdrawModal"></button>
+    </div>
+    <p class="mb-3" style="color: #333;">
+  정말 회원 탈퇴를 진행하시겠습니까?<br>
+  탈퇴 후 계정 복구는 불가능합니다.
+</p>
+
+<div class="mb-3">
+  <label class="form-label">비밀번호 확인</label>
+  <input
+    type="password"
+    class="form-control"
+    v-model="withdrawPassword"
+    required
+  />
+  <p v-if="withdrawError" class="text-danger mt-2">
+    {{ withdrawError }}
+  </p>
+</div>
+
+<button
+  class="btn btn-danger w-100"
+  @click="withdrawUser"
+  :disabled="!withdrawPassword"
+>
+  탈퇴하기
+</button>
+
+  </div>
+</div>
 
   </div>
 </template>
@@ -266,12 +306,41 @@ const myComments = ref([])
 const likedPosts = ref([])
 const likedComments = ref([])
 const activeTab = ref('posts')
-
+const withdrawPassword = ref('')
+const withdrawError = ref('')
 const editForm = ref({ name: '', phone: '' })
 
 // 모달 제어 ref 추가
 const showEditModal = ref(false)
 const showPasswordModal = ref(false)
+const showWithdrawModal = ref(false)
+
+function openWithdrawModal() {
+  showWithdrawModal.value = true
+}
+
+function closeWithdrawModal() {
+  showWithdrawModal.value = false
+}
+
+async function withdrawUser() {
+  withdrawError.value = '' // 기존 에러 초기화
+  if (!withdrawPassword.value) {
+    alert('비밀번호를 입력해주세요.')
+    return
+  }
+  try {
+    await userApi.withdraw({
+      password: withdrawPassword.value
+    })
+    alert('회원 탈퇴가 완료되었습니다.')
+    localStorage.removeItem('accessToken')
+    window.location.href = '/'
+  } catch (error) {
+    console.error(error)
+    withdrawError.value = '비밀번호가 올바르지 않습니다.'
+  }
+}
 
 function openEditModal() {
   showEditModal.value = true
@@ -471,5 +540,9 @@ onMounted(async () => {
 
 .password-strength.strong {
   color: #4ade80; /* 초록 */
+}
+.text-danger {
+  color: #f87171;
+  font-weight: bold;
 }
 </style>
