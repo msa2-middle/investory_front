@@ -48,7 +48,7 @@
       <div class="header-right">
         <div class="auth-buttons">
           <template v-if="authStore.token">
-            <div class="dropdown" @click="toggleDropdown" style="position: relative;">
+            <div class="dropdown" ref="dropdownRef" @click="toggleDropdown" style="position: relative;">
               <button class="btn-login dropdown-toggle" type="button">
                 {{ authStore.userName }}님
               </button>
@@ -76,13 +76,14 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import Alarm from '@/components/Alarm.vue'
 import stockApi from '@/api/stockApi'
 
 const dropdownOpen = ref(false)
+const dropdownRef = ref(null)
 const authStore = useAuthStore() // 전역 로그인 상태 (Pinia)
 const router = useRouter() // 라우터 이동 기능 사용
 
@@ -130,6 +131,25 @@ watch(searchQuery, (val) => {
   searchTimeout = setTimeout(fetchAutocomplete, 200)
 })
 
+
+// 외부 클릭 감지 함수
+function handleClickOutside(event) {
+  if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
+    dropdownOpen.value = false
+  }
+}
+
+// 컴포넌트 마운트 시 이벤트 리스너 추가
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+// 컴포넌트 언마운트 시 이벤트 리스너 제거
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
+// 검색창 이벤트
 function onSearchFocus() {
   isSearchFocused.value = true
   if (searchResults.value.length > 0) showAutocomplete.value = true
@@ -174,7 +194,6 @@ function goToStockDetail(stock) {
   showAutocomplete.value = false
 }
 </script>
-
 
 <style scoped>
 .welcome-text {
