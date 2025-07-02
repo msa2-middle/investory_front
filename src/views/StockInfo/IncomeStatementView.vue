@@ -23,12 +23,33 @@
       <table>
         <thead>
           <tr>
-            <th>결산 년월</th>
-            <th>매출액</th>
-            <th>영업 이익</th>
-            <th>당기순이익</th>
+            <th>
+              <TooltipHeader
+                label="결산<br />년월"
+                desc="해당 손익계산서가 기준하는 회계 연도 및 월입니다."
+              />
+            </th>
+            <th>
+              <TooltipHeader
+                label="매출액"
+                desc="회사가 제품이나 서비스를 판매하여 벌어들인 총 수익입니다."
+              />
+            </th>
+            <th>
+              <TooltipHeader
+                label="영업<br />이익"
+                desc="매출에서 매출원가와 판매·관리비 등을 제외한 실제 영업 성과입니다."
+              />
+            </th>
+            <th>
+              <TooltipHeader
+                label="당기<br />순이익"
+                desc="영업이익에서 이자, 법인세 등을 모두 반영한 최종 순이익입니다."
+              />
+            </th>
           </tr>
         </thead>
+
         <tbody>
           <tr v-for="item in filteredStatements" :key="item.stacYymm">
             <td>{{ item.stacYymm }}</td>
@@ -51,6 +72,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import stockApi from '@/api/stockApi'
 import BarChart from '@/components/BarChart.vue'
+import TooltipHeader from '@/components/TooltipHeader.vue'
 
 const route = useRoute()
 const loading = ref(true)

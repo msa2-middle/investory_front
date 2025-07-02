@@ -24,13 +24,39 @@
       <table>
         <thead>
           <tr>
-            <th>결산 년월</th>
-            <th>부채 비율</th>
-            <th>차입금 의존도</th>
-            <th>유동 비율</th>
-            <th>당좌 비율</th>
+            <th>
+              <TooltipHeader
+                label="결산<br />년월"
+                desc="해당 안정성 지표가 기준하는 회계 연도 및 월입니다."
+              />
+            </th>
+            <th>
+              <TooltipHeader
+                label="부채<br />비율"
+                desc="자기자본 대비 부채의 비율입니다. 수치가 낮을수록 재무 건전성이 좋습니다."
+              />
+            </th>
+            <th>
+              <TooltipHeader
+                label="차입금<br />의존도"
+                desc="총 자산 중에서 차입금이 차지하는 비율입니다. 외부자금 의존도를 보여줍니다."
+              />
+            </th>
+            <th>
+              <TooltipHeader
+                label="유동<br />비율"
+                desc="단기 부채를 감당할 수 있는 유동자산의 비율입니다. 100% 이상이면 양호합니다."
+              />
+            </th>
+            <th>
+              <TooltipHeader
+                label="당좌<br />비율"
+                desc="유동자산 중에서도 당장 현금화 가능한 자산으로 단기부채를 감당할 수 있는 비율입니다."
+              />
+            </th>
           </tr>
         </thead>
+
         <tbody>
           <tr v-for="item in filteredRatios" :key="item.stacYymm">
             <td>{{ item.stacYymm }}</td>
@@ -54,6 +80,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import stockApi from '@/api/stockApi'
 import BarChart from '@/components/BarChart.vue'
+import TooltipHeader from '@/components/TooltipHeader.vue'
 
 const route = useRoute()
 const loading = ref(true)

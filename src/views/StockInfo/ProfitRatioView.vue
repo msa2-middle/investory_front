@@ -24,13 +24,39 @@
       <table>
         <thead>
           <tr>
-            <th>결산 년월</th>
-            <th>총자본 순이익률</th>
-            <th>자기자본 순이익률</th>
-            <th>매출액 순이익률</th>
-            <th>매출액 총이익률</th>
+            <th>
+              <TooltipHeader
+                label="결산<br />년월"
+                desc="해당 수익성 지표가 기준하는 회계 연도 및 월입니다."
+              />
+            </th>
+            <th>
+              <TooltipHeader
+                label="총자본<br />순이익률"
+                desc="총자산 대비 당기순이익의 비율입니다. 자산 활용 효율성을 나타냅니다."
+              />
+            </th>
+            <th>
+              <TooltipHeader
+                label="자기자본<br />순이익률"
+                desc="자기자본 대비 당기순이익의 비율입니다. ROE라고도 불립니다."
+              />
+            </th>
+            <th>
+              <TooltipHeader
+                label="매출액<br />순이익률"
+                desc="매출액 대비 당기순이익의 비율입니다. 수익성의 대표 지표입니다."
+              />
+            </th>
+            <th>
+              <TooltipHeader
+                label="매출액<br />총이익률"
+                desc="매출액 대비 매출총이익의 비율입니다. 제품 수익 구조를 보여줍니다."
+              />
+            </th>
           </tr>
         </thead>
+
         <tbody>
           <tr v-for="item in filteredRatios" :key="item.stacYymm">
             <td>{{ item.stacYymm }}</td>
@@ -54,6 +80,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import stockApi from '@/api/stockApi'
 import BarChart from '@/components/BarChart.vue'
+import TooltipHeader from '@/components/TooltipHeader.vue'
 
 const route = useRoute()
 const loading = ref(true)
