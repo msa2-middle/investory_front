@@ -4,7 +4,7 @@
     <div class="connection-status">
       <div v-if="!connected" class="status disconnected">
         <span class="dot"></span>
-        SSE 연결 중...
+        SSE 연결 실패
       </div>
       <div v-else class="status connected">
         <span class="dot"></span>
