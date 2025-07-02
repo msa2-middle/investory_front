@@ -112,7 +112,7 @@ function connectSSE() {
   }
 
   console.log(`[SSE] 연결 시도: stockId=${stockId}`)
-  const url = `/stock/${stockId}/realTimeprice`
+  const url = `/api/stock/${stockId}/realTimeprice`
 
   try {
     eventSource = new EventSource(url)

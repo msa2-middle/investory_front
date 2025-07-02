@@ -2,7 +2,7 @@ import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 
 const api = axios.create({
-  baseURL: 'http://localhost:8091', // 백엔드 서버 주소
+  baseURL: '/api', // 프록시를 통해 백엔드로 전달
   headers: {
     'Content-Type': 'application/json',
   },
@@ -19,7 +19,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error)
-  }
+  },
 )
 
 // 응답 인터셉터 - 401이면 refreshToken으로 재발급 시도
@@ -29,11 +29,7 @@ api.interceptors.response.use(
     const originalRequest = error.config
 
     // accessToken 만료로 401 발생했을 때
-    if (
-      error.response &&
-      error.response.status === 401 &&
-      !originalRequest._retry
-    ) {
+    if (error.response && error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
 
       try {
@@ -42,11 +38,8 @@ api.interceptors.response.use(
           throw new Error('No refresh token saved.')
         }
 
-        // refreshToken으로 accessToken 재발급 요청
-        const res = await axios.post(
-          'http://localhost:8091/users/refresh',
-          { refreshToken }
-        )
+        // refreshToken으로 accessToken 재발급 요청 (절대 경로 사용)
+        const res = await axios.post('/api/users/refresh', { refreshToken })
         const newAccessToken = res.data.accessToken
 
         const authStore = useAuthStore()
@@ -58,7 +51,6 @@ api.interceptors.response.use(
         // 기존 요청 Authorization 헤더 교체
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
         return api(originalRequest)
-
       } catch (refreshError) {
         console.error('리프레시 토큰 만료', refreshError)
 
@@ -71,7 +63,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error)
-  }
+  },
 )
 
 export default api
