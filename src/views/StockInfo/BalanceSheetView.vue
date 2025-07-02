@@ -27,8 +27,6 @@
         </div>
       </div> -->
 
-      <BarChart v-if="chartData" :chart-data="chartData" />
-
       <!-- ✅ 자산/부채/자본 시각화 -->
       <BarChart v-if="chartData" :chart-data="chartData" />
 
