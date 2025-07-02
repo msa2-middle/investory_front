@@ -23,11 +23,6 @@ import StockLayout from '@/views/StockInfo/StockLayout.vue'
 
 import { useAuthStore } from '@/stores/auth'
 
-const PriceView = {
-  template:
-    '<div style="text-align:center;padding:40px 0;font-size:1.5rem;">가격 차트/정보 영역(임시)</div>',
-}
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -67,12 +62,8 @@ const router = createRouter({
       name: 'myAllActivity',
       component: MyAllActivityView,
     },
-    {
-      path: '/stock/:stockId/price',
-      component: () => import('@/views/StockInfo/StockPriceView.vue'),
-    },
 
-    // Stock routes with nested structure
+    // Stock routes with nested structure - StockLayout으로 모든 stock 경로를 감쌈
     {
       path: '/stock/:stockId',
       component: StockLayout,
@@ -82,11 +73,25 @@ const router = createRouter({
           path: '',
           redirect: (to) => `/stock/${to.params.stockId}/price`,
         },
+        // 가격/호가 페이지를 StockLayout 안으로 이동
         {
           path: 'price',
           name: 'stockPrice',
-          component: PriceView,
+          component: () => import('@/views/StockInfo/StockPriceView.vue'),
         },
+        // 가격추이 페이지
+        {
+          path: 'history',
+          name: 'stockPriceHistory',
+          component: StockPriceHistoryView,
+        },
+        // 커뮤니티 페이지
+        {
+          path: 'community',
+          name: 'community',
+          component: PostView,
+        },
+        // 종목정보 및 하위 탭들
         {
           path: 'stock-info',
           name: 'stockInfo',
@@ -134,16 +139,6 @@ const router = createRouter({
             },
           ],
         },
-        {
-          path: 'community',
-          name: 'community',
-          component: PostView,
-        },
-        {
-          path: 'history',
-          name: 'stockPriceHistory',
-          component: StockPriceHistoryView,
-        },
       ],
     },
     {
@@ -160,13 +155,13 @@ const router = createRouter({
       path: '/admin',
       name: 'adminHome',
       component: () => import('@/views/admin/AdminHomeView.vue'),
-      meta: { requiresAdmin: true }
+      meta: { requiresAdmin: true },
     },
     {
       path: '/admin/users',
       name: 'adminUsers',
       component: () => import('@/views/admin/AdminUserList.vue'),
-      meta: { requiresAdmin: true }
+      meta: { requiresAdmin: true },
     },
     {
       path: '/admin/users/:id',
@@ -196,7 +191,7 @@ const router = createRouter({
       path: '/admin/comments/:id',
       name: 'adminCommentDetail',
       component: () => import('@/views/admin/AdminCommentDetail.vue'),
-      meta: { requiresAdmin: true }
+      meta: { requiresAdmin: true },
     },
     // 에러 라우트
     {
