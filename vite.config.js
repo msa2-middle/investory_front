@@ -19,11 +19,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
-    },
-    '/stock': {
-      target: 'http://localhost:8091',
-      changeOrigin: true,
-      secure: false,
+      '/stock': {
+        target: 'http://localhost:8091',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 })
