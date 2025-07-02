@@ -150,11 +150,13 @@ import StockAlertModal from '@/components/StockAlertModal.vue';
 import StockAlertManageButton from '@/components/StockAlertManageButton.vue';
 import StockAlertEditModal from '@/components/StockAlertEditModal.vue';
 import alarmApi from '@/api/alarmApi.js'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'StockRealtimeChart',
   data() {
     return {
+      authStore: null,
       currentTime: '',
       activeTab: 'market-cap-rank',
       activePeriod: '1일',
@@ -188,6 +190,10 @@ export default {
     StockAlertModal,
     StockAlertManageButton,
     StockAlertEditModal
+  },
+
+  created() {
+    this.authStore = useAuthStore();
   },
 
   computed: {
@@ -224,7 +230,9 @@ export default {
     this.timer = setInterval(this.updateCurrentTime, 60000);
     this.fetchStockData(this.activeTab, 0);
     this.startDataTimer();
-    this.loadStockAlertSettings(); // 알림 설정 로드
+    if (this.authStore?.token) {
+    this.loadStockAlertSettings();
+    } // 알림 설정 로드
   },
 
   beforeUnmount() {
@@ -259,7 +267,9 @@ export default {
         this.pageSize = response.data.size || 10;
 
         // 데이터 변경 시마다 알림 설정 다시 로드
-        await this.loadStockAlertSettings();
+        if (this.authStore?.token) {
+          await this.loadStockAlertSettings();
+        }
 
         this.tableFlash = false;
         this.$nextTick(() => {
@@ -353,6 +363,10 @@ export default {
 
     // 알림 생성 모달 열기
     openCreateModal(stock) {
+      if (!this.authStore?.token) {
+        alert('로그인 후 이용할 수 있는 기능입니다.');
+        return;
+      }
       console.log('생성 모달 열기:', stock);
       this.selectedStock = stock;
       this.isCreateModalOpen = true;
