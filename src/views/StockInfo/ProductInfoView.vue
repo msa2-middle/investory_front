@@ -58,13 +58,22 @@ import stockApi from '@/api/stockApi'
 const route = useRoute()
 const productInfo = ref(null)
 const loading = ref(true)
+const errorMessage = ref('')
 
 async function fetchProductInfo() {
   try {
     const response = await stockApi.getProductInfo(route.params.stockId)
     productInfo.value = response.data
+    errorMessage.value = ''
   } catch (error) {
     console.error('상품 정보 조회 실패:', error)
+
+    // 백엔드에서 내려준 에러 메시지 출력
+    if (error.response?.data?.message) {
+      errorMessage.value = error.response.data.message
+    } else {
+      errorMessage.value = '상품 정보를 불러오지 못했습니다.'
+    }
   } finally {
     loading.value = false
   }
