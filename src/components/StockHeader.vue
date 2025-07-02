@@ -4,14 +4,14 @@
       <!-- 왼쪽: Investory 이니셜 -->
       <div class="header-left">
         <div class="logo">
-          <span class="logo-text">Investory</span>
+          <router-link to="/" class="logo-text">Investory</router-link>
         </div>
       </div>
 
       <!-- 중앙: 홈, 검색 input, 검색 -->
       <div class="header-center">
         <nav class="nav-menu">
-          <a href="#" class="nav-item active">홈</a>
+          <router-link to="/" class="nav-item" active-class="active">홈</router-link>
         </nav>
 
         <div class="search-container">
@@ -19,56 +19,189 @@
             <input
               type="text"
               class="search-input"
-              placeholder="종목명, 종목코드 검색"
+              placeholder="종목명/종목코드 검색"
               v-model="searchQuery"
               @focus="onSearchFocus"
               @blur="onSearchBlur"
+              @keyup.enter="performSearch"
             />
-            <button class="search-btn">
+            <button class="search-btn" @click="performSearch">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
+            <ul v-if="showAutocomplete && searchResults.length > 0" class="autocomplete-list">
+              <li v-for="item in searchResults" :key="item.ticker || item.code" class="autocomplete-item" @mousedown.prevent="goToStockDetail(item)">
+                <span class="autocomplete-stockId">{{ item.stockId }}</span>
+                <span class="autocomplete-stockName">{{ item.stockName }}</span>
+              </li>
+            </ul>
           </div>
         </div>
 
         <nav class="nav-menu">
-          <a href="#" class="nav-item">검색</a>
+          <!-- <a href="#" class="nav-item">검색</a> -->
         </nav>
       </div>
 
       <!-- 오른쪽: 회원가입, 로그인 -->
       <div class="header-right">
         <div class="auth-buttons">
-          <button class="btn-signup">회원가입</button>
-          <button class="btn-login">로그인</button>
+          <template v-if="authStore.token">
+            <div class="dropdown" ref="dropdownRef" @click="toggleDropdown" style="position: relative;">
+              <button class="btn-login dropdown-toggle" type="button">
+                {{ authStore.userName }}님
+              </button>
+              <ul class="dropdown-menu show" v-if="dropdownOpen" style="right: 0; left: auto;">
+                <li>
+                  <router-link to="/mypage" class="dropdown-item">마이페이지</router-link>
+                </li>
+                <li>
+                  <button class="dropdown-item" @click.stop="logout">로그아웃</button>
+                </li>
+              </ul>
+            </div>
+            <Alarm />
+          </template>
+
+          <template v-else>
+            <button class="btn-signup" @click="goToSignup">회원가입</button>
+            <button class="btn-login" @click="goToLogin">로그인</button>
+          </template>
         </div>
       </div>
+
     </div>
   </header>
 </template>
 
-<script>
-export default {
-  name: 'StockHeader',
-  data() {
-    return {
-      searchQuery: '',
-      isSearchFocused: false
-    }
-  },
-  methods: {
-    onSearchFocus() {
-      this.isSearchFocused = true;
-    },
-    onSearchBlur() {
-      this.isSearchFocused = false;
+<script setup>
+import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
+import Alarm from '@/components/Alarm.vue'
+import stockApi from '@/api/stockApi'
+
+const dropdownOpen = ref(false)
+const dropdownRef = ref(null)
+const authStore = useAuthStore() // 전역 로그인 상태 (Pinia)
+const router = useRouter() // 라우터 이동 기능 사용
+
+watch(
+  () => authStore.token,
+  (newToken) => {
+    if (newToken) {
+      dropdownOpen.value = false
     }
   }
+)
+
+// 검색창 상태 (반응형 상태)
+const searchQuery = ref('')
+const isSearchFocused = ref(false)
+const searchResults = ref([])
+const showAutocomplete = ref(false)
+let searchTimeout = null
+
+// 자동완성 API 호출
+async function fetchAutocomplete() {
+  if (!searchQuery.value.trim()) {
+    searchResults.value = []
+    showAutocomplete.value = false
+    return
+  }
+  try {
+    const res = await stockApi.searchStocks(searchQuery.value.trim(), 100)
+    searchResults.value = res.data || []
+    showAutocomplete.value = true
+  } catch {
+    searchResults.value = []
+    showAutocomplete.value = false
+  }
+}
+
+// 검색창 입력시 자동완성
+watch(searchQuery, (val) => {
+  clearTimeout(searchTimeout)
+  if (!val.trim()) {
+    searchResults.value = []
+    showAutocomplete.value = false
+    return
+  }
+  searchTimeout = setTimeout(fetchAutocomplete, 200)
+})
+
+
+// 외부 클릭 감지 함수
+function handleClickOutside(event) {
+  if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
+    dropdownOpen.value = false
+  }
+}
+
+// 컴포넌트 마운트 시 이벤트 리스너 추가
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+// 컴포넌트 언마운트 시 이벤트 리스너 제거
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
+// 검색창 이벤트
+function onSearchFocus() {
+  isSearchFocused.value = true
+  if (searchResults.value.length > 0) showAutocomplete.value = true
+}
+
+function onSearchBlur() {
+  isSearchFocused.value = false
+  setTimeout(() => { showAutocomplete.value = false }, 150)
+}
+
+function toggleDropdown() {
+  dropdownOpen.value = !dropdownOpen.value
+}
+
+// 로그아웃 (스토어 초기화 + 페이지 이동)
+function logout() {
+  authStore.clearToken()
+  router.push('/login')
+}
+
+function goToLogin() {
+  router.push('/login')
+}
+
+function goToSignup() {
+  router.push('/signup')
+}
+
+function performSearch() {
+  if (searchQuery.value.trim()) {
+    // 검색어에서 공백 제거하고 대문자로 변환 (종목코드 형식)
+    const ticker = searchQuery.value.trim().toUpperCase();
+    router.push(`/stock/${ticker}/stock-info`);
+    searchQuery.value = ''; // 검색 후 입력창 초기화
+  }
+}
+
+// 자동완성 항목 클릭 시 상세페이지 이동
+function goToStockDetail(stock) {
+  router.push(`/stock/${stock.stockId}/stock-info`)
+  searchQuery.value = ''
+  showAutocomplete.value = false
 }
 </script>
 
 <style scoped>
+.welcome-text {
+  margin-right: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  color: #ffffff;
+}
 .stock-header {
   background-color: #1a1a1a;
   color: white;
@@ -222,7 +355,7 @@ export default {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: none;
+  border: 1px solid #374151;
 }
 
 .btn-signup {
@@ -237,12 +370,10 @@ export default {
 }
 
 .btn-login {
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
   color: white;
 }
 
 .btn-login:hover {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
   transform: translateY(-1px);
 }
 
@@ -284,5 +415,55 @@ export default {
   .search-input {
     font-size: 16px; /* iOS에서 줌 방지 */
   }
+}
+
+.autocomplete-list {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 40px;
+  background: #23263a;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  z-index: 100;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.autocomplete-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  transition: background 0.15s;
+}
+.autocomplete-item:hover {
+  background: #374151;
+}
+.autocomplete-ticker {
+  font-weight: bold;
+  color: #60a5fa;
+  margin-right: 8px;
+}
+.autocomplete-name {
+  color: #fff;
+  font-size: 1rem;
+}
+.autocomplete-stockId {
+  font-weight: bold;
+  color: #60a5fa;
+  font-size: .7rem;
+  margin-right: 10px;
+  letter-spacing: 1px;
+}
+.autocomplete-stockName {
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
 }
 </style>

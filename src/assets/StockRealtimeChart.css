@@ -1,0 +1,354 @@
+/* StockRealtimeChart.css */
+
+.stock-chart-container {
+  background-color: #1a1a1a;
+  color: white;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 1200px;
+  border-radius: 12px;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+  flex-direction: column;
+}
+
+.time-info {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+  text-align: center;
+}
+
+.time-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.current-time {
+  font-size: 14px;
+  color: #9ca3af;
+  margin-top: 3px;
+}
+
+.chart-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid #374151;
+  color: #9ca3af;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  border-color: #4b5563;
+  color: white;
+}
+
+.tab-btn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.chart-actions {
+  display: flex;
+  align-items: center;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid #374151;
+  color: #9ca3af;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  border-color: #4b5563;
+  color: white;
+}
+
+.time-filter {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #374151;
+}
+
+.filter-label {
+  font-weight: 600;
+  color: white;
+}
+
+.time-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.time-btn {
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.time-btn:hover {
+  color: white;
+  background: #374151;
+}
+
+.time-btn.active {
+  color: #3b82f6;
+  background: #1e3a8a20;
+}
+
+.stock-list {
+  width: 100%;
+}
+
+/* 컬럼 헤더 */
+.list-header {
+  display: grid;
+  grid-template-columns: 100px 200px 120px 90px 100px 80px;
+  gap: 20px;
+  padding: 12px 0 16px 0;
+  border-bottom: 2px solid;
+  border-image: linear-gradient(to right, transparent, #4b5563, transparent) 1;
+  margin-bottom: 12px;
+  margin-left: 6.0cm;
+}
+
+.header-item {
+  font-size: 14px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.stock-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 200px; /* 로딩 스피너 등을 위해 최소 높이 설정 */
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-message, .error-message, .no-data-message {
+  color: #9ca3af;
+  font-size: 16px;
+  padding: 20px;
+  text-align: center;
+  width: 100%;
+}
+
+/* 종목 데이터 */
+.stock-item {
+  display: grid;
+  grid-template-columns: 80px 200px 120px 120px 160px 80px;
+  gap: 20px;
+  padding: 12px 0;
+  align-items: center;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.stock-item:hover {
+  background-color: #262626;
+}
+
+.stock-rank {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.heart-btn {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.heart-btn:hover {
+  color: #ef4444;
+}
+
+.rank {
+  font-weight: 600;
+  color: white;
+  padding-left: 35px;
+}
+
+.stock-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stock-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stock-icon img {
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+}
+
+.stock-name {
+  font-weight: 500;
+  color: white;
+}
+
+.stock-price {
+  font-weight: 600;
+  text-align: right;
+}
+
+.stock-change {
+  font-weight: 600;
+  text-align: right;
+}
+
+.stock-change.positive {
+  color: #ef4444;
+}
+
+.stock-change.negative {
+  color: #3b82f6;
+}
+
+.stock-change.neutral {
+  color: #9ca3af;
+}
+
+.stock-volume {
+  text-align: right;
+  color: #9ca3af;
+  font-size: 14px;
+  padding-right: 80px;
+  min-width: 120px;
+}
+
+.load-more {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #374151;
+}
+
+.notice {
+  background: #1e3a8a20;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  margin-bottom: 16px;
+  color: #93c5fd;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.page-btn,
+.nav-btn {
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid #374151;
+  color: #9ca3af;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.page-btn:hover,
+.nav-btn:hover {
+  border-color: #4b5563;
+  color: white;
+}
+
+.page-btn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.pagination-dots {
+  color: #6b7280;
+  padding: 0 4px;
+}
+
+@media (max-width: 768px) {
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .chart-tabs {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .list-header,
+  .stock-item {
+    grid-template-columns: 60px 1fr 80px 80px;
+    gap: 8px;
+  }
+
+  .stock-volume {
+    display: none;
+  }
+
+  .header-item:last-child {
+    display: none;
+  }
+
+  /* stockAlertSetting*/
+  .stock-alert {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
