@@ -26,7 +26,6 @@
 
     <!-- 거래 내역 테이블 -->
     <div class="table-container" v-if="marketOpen">
-      <!-- 기존 거래 테이블 그대로 유지 -->
       <table class="trade-table">
         <thead>
           <tr>
@@ -62,7 +61,16 @@
     <!-- 장이 열려있지 않을 때 -->
     <div v-else class="market-closed">
       <p>⚠ 현재는 장 운영 시간이 아닙니다.</p>
-      <p>실시간 체결 데이터는 오전 9시 ~ 오후 3시 30분에만 제공됩니다.</p>
+      <p>실시간 체결 데이터는 오전 8시 ~ 오후 8시에만 제공됩니다.</p>
+    </div>
+
+    <!-- 디버깅 정보 (개발 시에만 표시) -->
+    <div v-if="showDebugInfo" class="debug-info">
+      <h4>디버그 정보</h4>
+      <p>연결 상태: {{ connected }}</p>
+      <p>장 상태: {{ marketOpen }}</p>
+      <p>받은 데이터 수: {{ trades.length }}</p>
+      <p>마지막 메시지: {{ lastMessage }}</p>
     </div>
   </div>
 </template>
@@ -71,176 +79,236 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 
+// 라우트에서 stockId 추출
 const route = useRoute()
 const stockId = route.params.stockId
 
-const connected = ref(false)
+// 상태 변수들
 const trades = ref([])
+const connected = ref(false)
+const marketOpen = ref(true)
+const showDebugInfo = ref(true) // 개발 시 디버깅용
+const lastMessage = ref('')
+
 let eventSource = null
 
-const marketOpen = ref(true)
-
-const isMarketOpen = () => {
+// 장 운영 시간 체크 (08:00 ~ 20:00 KST)
+function isMarketOpen() {
   const now = new Date()
-  const koreaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
-  const hours = koreaTime.getHours()
-  const minutes = koreaTime.getMinutes()
+  const kst = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
+  const hour = kst.getHours()
+  const minute = kst.getMinutes()
+  const totalMinutes = hour * 60 + minute
 
-  // 09:00 ~ 15:30 사이에만 true
-  const openMinutes = hours * 60 + minutes
-  return openMinutes >= 540 && openMinutes <= 930
+  // 8:00 ~ 20:00 (480분 ~ 1200분)
+  return totalMinutes >= 480 && totalMinutes <= 1200
 }
 
+// SSE 연결 함수
+function connectSSE() {
+  if (eventSource) {
+    eventSource.close()
+    eventSource = null
+  }
+
+  console.log(`[SSE] 연결 시도: stockId=${stockId}`)
+  const url = `/stock/${stockId}/realTimeprice`
+
+  try {
+    eventSource = new EventSource(url)
+
+    // 연결 성공
+    eventSource.addEventListener('open', (event) => {
+      console.log('[SSE] 연결 성공')
+      connected.value = true
+      lastMessage.value = '연결 성공'
+    })
+
+    // 메시지 수신 (기본 message 이벤트)
+    eventSource.addEventListener('message', (event) => {
+      console.log('[SSE] message 이벤트:', event.data)
+      lastMessage.value = `message: ${event.data}`
+      handleMessage(event.data)
+    })
+
+    // trade 이벤트 수신 (백엔드에서 보내는 사용자 정의 이벤트)
+    eventSource.addEventListener('trade', (event) => {
+      console.log('[SSE] trade 이벤트:', event.data)
+      lastMessage.value = `trade: ${event.data}`
+      handleTradeData(event.data)
+    })
+
+    // marketClosed 이벤트 처리
+    eventSource.addEventListener('marketClosed', (event) => {
+      console.log('[SSE] 장 마감:', event.data)
+      marketOpen.value = false
+      lastMessage.value = `marketClosed: ${event.data}`
+    })
+
+    // 에러 처리
+    eventSource.addEventListener('error', (event) => {
+      console.error('[SSE] 연결 오류:', event)
+      connected.value = false
+      lastMessage.value = '연결 오류'
+
+      // 3초 후 재연결 시도
+      setTimeout(() => {
+        if (!connected.value && marketOpen.value) {
+          console.log('[SSE] 재연결 시도...')
+          connectSSE()
+        }
+      }, 3000)
+    })
+  } catch (error) {
+    console.error('[SSE] 연결 실패:', error)
+    connected.value = false
+    lastMessage.value = `연결 실패: ${error.message}`
+  }
+}
+
+// 일반 메시지 처리
+function handleMessage(data) {
+  try {
+    // JSON 형태의 데이터인지 확인
+    if (data.startsWith('{') || data.startsWith('[')) {
+      const jsonData = JSON.parse(data)
+      console.log('[SSE] JSON 데이터:', jsonData)
+
+      // trade 데이터인지 확인하여 처리
+      if (jsonData.stockId || jsonData.tradePrice) {
+        handleTradeData(data)
+      }
+    } else {
+      console.log('[SSE] 텍스트 메시지:', data)
+    }
+  } catch (error) {
+    console.warn('[SSE] 메시지 파싱 실패:', error, 'data:', data)
+  }
+}
+
+// 거래 데이터 처리
+function handleTradeData(data) {
+  try {
+    const trade = typeof data === 'string' ? JSON.parse(data) : data
+    console.log('[SSE] 거래 데이터 처리:', trade)
+
+    // 데이터 검증
+    if (trade && (trade.stockId || trade.tradePrice)) {
+      // 배열 맨 앞에 추가 (최신 데이터가 위에 표시)
+      trades.value.unshift(trade)
+
+      // 최대 50개 항목만 유지
+      if (trades.value.length > 50) {
+        trades.value = trades.value.slice(0, 50)
+      }
+
+      console.log(`[SSE] 거래 데이터 추가됨. 총 ${trades.value.length}개`)
+    } else {
+      console.warn('[SSE] 유효하지 않은 거래 데이터:', trade)
+    }
+  } catch (error) {
+    console.error('[SSE] 거래 데이터 파싱 실패:', error, 'data:', data)
+  }
+}
+
+// 컴포넌트 마운트 시
 onMounted(() => {
+  console.log(`[MOUNT] stockId: ${stockId}`)
+
   marketOpen.value = isMarketOpen()
+  console.log(`[MOUNT] 장 상태: ${marketOpen.value}`)
 
   if (marketOpen.value) {
     connectSSE()
   } else {
-    console.log('[MARKET] 장이 열려있지 않습니다.')
+    console.log('[MOUNT] 장이 닫혀있어 SSE 연결하지 않음')
   }
 })
 
-// SSE 연결 설정
-const connectSSE = () => {
-  try {
-    eventSource = new EventSource(`http://localhost:8091/stock/${stockId}/realTimeprice`)
-
-    eventSource.addEventListener('open', () => {
-      console.log('[SSE] 연결 시작')
-    })
-
-    eventSource.addEventListener('connected', (event) => {
-      connected.value = true
-      console.log(`[SSE] 연결 성공: ${event.data}`)
-    })
-
-    eventSource.addEventListener('priceUpdate', (event) => {
-      try {
-        const newTrade = JSON.parse(event.data)
-
-        // 새 거래 데이터를 맨 앞에 추가 (최신 데이터가 위에 오도록)
-        trades.value.unshift(newTrade)
-
-        // 최대 50개 데이터만 유지 (성능 고려)
-        if (trades.value.length > 50) {
-          trades.value = trades.value.slice(0, 50)
-        }
-
-        console.log(`[SSE] 가격 갱신`, newTrade)
-      } catch (error) {
-        console.error('[SSE] 데이터 파싱 오류:', error)
-      }
-    })
-
-    eventSource.addEventListener('error', (event) => {
-      console.error('[SSE] 이벤트 오류:', event)
-    })
-
-    eventSource.onerror = (error) => {
-      console.error('[SSE] 연결 오류:', error)
-      connected.value = false
-
-      // 재연결 시도 (5초 후)
-      setTimeout(() => {
-        if (!connected.value) {
-          console.log('[SSE] 재연결 시도...')
-          connectSSE()
-        }
-      }, 5000)
-    }
-  } catch (error) {
-    console.error('[SSE] 연결 초기화 오류:', error)
+// 컴포넌트 언마운트 시
+onBeforeUnmount(() => {
+  console.log('[UNMOUNT] SSE 연결 종료')
+  if (eventSource) {
+    eventSource.close()
+    eventSource = null
   }
+})
+
+// 포맷터 함수들
+const nf = new Intl.NumberFormat('ko-KR')
+
+const formatPrice = (value) => {
+  if (!value) return '0'
+  const num = typeof value === 'string' ? parseInt(value.replace(/,/g, '')) : value
+  return isNaN(num) ? value : nf.format(num)
 }
 
-// 포맷팅 함수들
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('ko-KR').format(price)
+const formatVolume = (value) => {
+  if (!value) return '0'
+  const num = typeof value === 'string' ? parseInt(value.replace(/,/g, '')) : value
+  return isNaN(num) ? value : nf.format(num)
 }
 
-const formatVolume = (volume) => {
-  return new Intl.NumberFormat('ko-KR').format(volume)
+const formatNumber = (value) => {
+  if (!value) return '0'
+  const num = typeof value === 'string' ? parseInt(value.replace(/,/g, '')) : value
+  return isNaN(num) ? value : nf.format(num)
 }
 
-const formatNumber = (num) => {
-  return new Intl.NumberFormat('ko-KR').format(num)
-}
+function formatChangeRate(rate) {
+  if (!rate) return '0.00%'
 
-const formatChangeRate = (rate) => {
-  // 이미 퍼센트 문자열로 온 경우 (예: "3.17%", "-1.25%")
+  let val = rate
+
+  // 이미 %가 포함된 경우
   if (typeof rate === 'string' && rate.includes('%')) {
-    const numericValue = parseFloat(rate.replace('%', ''))
-    if (!isNaN(numericValue)) {
-      return `${numericValue > 0 ? '+' : ''}${rate}`
-    }
-    return rate
-  }
-
-  // 숫자로 온 경우 (예: 0.0317, -0.0125)
-  if (typeof rate === 'number' && !isNaN(rate)) {
-    return `${rate > 0 ? '+' : ''}${(rate * 100).toFixed(2)}%`
-  }
-
-  // 문자열 숫자로 온 경우 (예: "0.0317")
-  if (typeof rate === 'string') {
-    const numericValue = parseFloat(rate)
-    if (!isNaN(numericValue)) {
-      return `${numericValue > 0 ? '+' : ''}${(numericValue * 100).toFixed(2)}%`
+    val = parseFloat(rate.replace('%', ''))
+  } else {
+    val = parseFloat(rate)
+    // 소수점 형태(0.0731)인 경우 백분율로 변환
+    if (Math.abs(val) < 1) {
+      val = val * 100
     }
   }
 
-  // 처리할 수 없는 경우
-  return rate || '0.00%'
+  if (isNaN(val)) return '0.00%'
+
+  return `${val > 0 ? '+' : ''}${val.toFixed(2)}%`
 }
 
-const formatTime = (timeString) => {
-  // HHMMSS 형식을 HH:MM:SS로 변환
-  if (timeString && timeString.length === 6) {
-    return `${timeString.slice(0, 2)}:${timeString.slice(2, 4)}:${timeString.slice(4, 6)}`
+function formatTime(time) {
+  if (!time) return ''
+  const timeStr = time.toString()
+
+  // "162924" 형태를 "16:29:24"로 변환
+  if (timeStr.length === 6) {
+    return `${timeStr.slice(0, 2)}:${timeStr.slice(2, 4)}:${timeStr.slice(4)}`
   }
-  return timeString
+
+  return timeStr
 }
 
-// 스타일 클래스 결정
-const getChangeClass = (rate) => {
-  let numericRate = 0
+function getChangeClass(rate) {
+  if (!rate) return 'neutral'
 
-  // 이미 퍼센트 문자열로 온 경우 (예: "3.17%", "-1.25%")
-  if (typeof rate === 'string' && rate.includes('%')) {
-    numericRate = parseFloat(rate.replace('%', ''))
-  }
-  // 숫자로 온 경우
-  else if (typeof rate === 'number') {
-    numericRate = rate
-  }
-  // 문자열 숫자로 온 경우
-  else if (typeof rate === 'string') {
-    numericRate = parseFloat(rate)
-  }
+  const numRate = parseFloat(typeof rate === 'string' ? rate.replace('%', '') : rate)
+  if (isNaN(numRate)) return 'neutral'
 
-  if (numericRate > 0) return 'positive'
-  if (numericRate < 0) return 'negative'
+  if (numRate > 0) return 'positive'
+  if (numRate < 0) return 'negative'
   return 'neutral'
 }
 
-const getVolumeClass = (volume) => {
-  // 거래량에 따른 색상 구분 (예: 큰 거래량은 빨간색)
-  if (volume >= 50) return 'high-volume'
-  if (volume >= 20) return 'medium-volume'
+function getVolumeClass(volume) {
+  if (!volume) return 'low-volume'
+
+  const num = parseInt(typeof volume === 'string' ? volume.replace(/,/g, '') : volume)
+  if (isNaN(num)) return 'low-volume'
+
+  if (num >= 50) return 'high-volume'
+  if (num >= 20) return 'medium-volume'
   return 'low-volume'
 }
-
-onMounted(() => {
-  connectSSE()
-})
-
-onBeforeUnmount(() => {
-  if (eventSource) {
-    eventSource.close()
-    console.log('[SSE] 연결 종료')
-  }
-})
 </script>
 
 <style scoped>
@@ -423,6 +491,35 @@ onBeforeUnmount(() => {
   margin: 0;
 }
 
+.market-closed {
+  text-align: center;
+  padding: 60px;
+  font-size: 14px;
+  color: #ddd;
+  background: #1c1c1c;
+  border: 1px solid #444;
+  border-radius: 8px;
+}
+
+.debug-info {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+.debug-info h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.debug-info p {
+  margin: 5px 0;
+  color: #666;
+}
+
 /* 스크롤바 스타일링 */
 .table-container::-webkit-scrollbar {
   width: 6px;
@@ -439,14 +536,5 @@ onBeforeUnmount(() => {
 
 .table-container::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
-}
-.market-closed {
-  text-align: center;
-  padding: 60px;
-  font-size: 14px;
-  color: #ddd; /* 기존: #888 → 더 밝게 */
-  background: #1c1c1c; /* 배경색도 살짝 바꿔주면 더 눈에 띔 */
-  border: 1px solid #444;
-  border-radius: 8px;
 }
 </style>

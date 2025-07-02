@@ -8,26 +8,25 @@ import { useAuthStore } from '@/stores/auth'
 import api from '@/api/api'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
-async function bootstrap(){
+async function bootstrap() {
+  const app = createApp(App)
+  const pinia = createPinia()
+  app.use(pinia)
+  app.use(router)
+  // app.use(router).mount('#app')
 
-const app = createApp(App)
-const pinia = createPinia()
-app.use(pinia)
-app.use(router)
+  const authStore = useAuthStore()
+  const token = localStorage.getItem('accessToken')
+  const userName = localStorage.getItem('userName')
 
-const authStore = useAuthStore()
-const token = localStorage.getItem('accessToken')
-const userName = localStorage.getItem('userName')
+  if (token) {
+    authStore.setToken(token)
+    authStore.setUserName(userName)
+  } else if (localStorage.getItem('refreshToken')) {
+    await tryRefreshToken(authStore, router)
+  }
 
-if (token) {
-  authStore.setToken(token)
-  authStore.setUserName(userName)
-} else if (localStorage.getItem('refreshToken')) {
-  await tryRefreshToken(authStore, router)
-}
-
-app.mount('#app')
-
+  app.mount('#app')
 }
 
 bootstrap()

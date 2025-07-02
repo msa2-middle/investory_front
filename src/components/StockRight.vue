@@ -72,16 +72,16 @@
 
 <script>
 import '../assets/StockRight.css';
-import axios from 'axios';
+import { getKospi, getKosdaq, getKospi200, getDomesticFixedIncome, getForeignFixedIncome } from '@/api/mainData'
 
 export default {
   name: 'StockRight',
   data() {
     return {
-      activeFilter: '지수 · 환율',
+      activeFilter: '주요 지수',
       chartWidth: 80,
       chartHeight: 30,
-      filters: ['지수 · 환율', '채권', '원자재'],
+      filters: ['주요 지수', '국내 채권', '해외 채권'],
       indices: [],
       loading: false,
       error: null
@@ -90,6 +90,13 @@ export default {
   methods: {
     setActiveFilter(filter) {
       this.activeFilter = filter;
+      if (filter === '주요 지수') {
+        this.fetchMainIndices();
+      } else if (filter === '국내 채권') {
+        this.fetchDomesticBonds();
+      } else if (filter === '해외 채권') {
+        this.fetchForeignBonds();
+      }
     },
     formatValue(value) {
       if (value >= 1000) {
@@ -134,24 +141,21 @@ export default {
         return `${x},${y}`;
       }).join(' ');
     },
-    async fetchIndices() {
+    async fetchMainIndices() {
       this.loading = true;
       this.error = null;
-
       try {
         const [kospiRes, kosdaqRes, kospi200Res] = await Promise.all([
-          axios.get('/main/kospi'),
-          axios.get('/main/kosdaq'),
-          axios.get('/main/kospi200')
+          getKospi(),
+          getKosdaq(),
+          getKospi200()
         ]);
-
-        // 데이터 매핑 함수
+        // 데이터 매핑
         const mapData = (res, defaultName, id) => {
           const data = res.data?.[0] || {};
           const value = this.safeParseFloat(data.bstp_nmix_prpr);
           const change = this.safeParseFloat(data.bstp_nmix_prdy_vrss);
           const changePercent = this.safeParseFloat(data.bstp_nmix_prdy_ctrt);
-
           return {
             id: id,
             name: data.hts_kor_isnm || defaultName,
@@ -162,22 +166,85 @@ export default {
             chartData: this.generateTrendData(value, 20, change > 0 ? 1.1 : 0.9)
           };
         };
-
         this.indices = [
           mapData(kospiRes, '코스피', 1),
           mapData(kosdaqRes, '코스닥', 2),
           mapData(kospi200Res, '코스피200', 3)
         ];
-      } catch (error) {
-        this.error = '지수 데이터를 불러오는데 실패했습니다.';
-        console.error('지수 데이터 불러오기 실패:', error);
+      } catch {
+        this.error = '지수 데이터를 불러오지 못했습니다.';
+      } finally {
+        this.loading = false;
+      }
+    },
+
+
+    async fetchDomesticBonds() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const res = await getDomesticFixedIncome();
+        this.indices = (res.data || []).map((item, idx) => {
+          // 변화 부호 해석
+          let change = parseFloat(item.bond_mnrt_prdy_vrss) || 0;
+          if (item.prdy_vrss_sign === '2' || item.prdy_vrss_sign === '5') change = -Math.abs(change);
+          if (item.prdy_vrss_sign === '1') change = Math.abs(change);
+          // 현재가
+          const value = parseFloat(item.bond_mnrt_prpr) || 0;
+          // 변화율
+          const changePercent = item.bstp_nmix_prdy_ctrt !== null ? parseFloat(item.bstp_nmix_prdy_ctrt) : null;
+          return {
+            id: idx,
+            name: item.hts_kor_isnm || '국내채권',
+            value: value,
+            change: change,
+            changePercent: changePercent,
+            changeType: 'value',
+            chartData: this.generateTrendData(value, 20, change > 0 ? 1.1 : 0.9)
+          };
+        });
+      } catch {
+        this.error = '국내 채권 데이터를 불러오지 못했습니다.';
+      } finally {
+        this.loading = false;
+      }
+    },
+
+
+
+    async fetchForeignBonds() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const res = await getForeignFixedIncome();
+        this.indices = (res.data || []).map((item, idx) => {
+          // 변화 부호 해석
+          let change = parseFloat(item.bond_mnrt_prdy_vrss) || 0;
+          if (item.prdy_vrss_sign === '2' || item.prdy_vrss_sign === '5') change = -Math.abs(change);
+          if (item.prdy_vrss_sign === '1') change = Math.abs(change);
+          // 현재가
+          const value = parseFloat(item.bond_mnrt_prpr) || 0;
+          // 변화율
+          const changePercent = item.prdy_ctrt !== null ? parseFloat(item.prdy_ctrt) : null;
+          return {
+            id: idx,
+            name: item.hts_kor_isnm || '해외채권',
+            value: value,
+            change: change,
+            changePercent: changePercent,
+            changeType: 'value',
+            chartData: this.generateTrendData(value, 20, change > 0 ? 1.1 : 0.9)
+          };
+        });
+      } catch {
+        this.error = '해외 채권 데이터를 불러오지 못했습니다.';
       } finally {
         this.loading = false;
       }
     }
   },
   mounted() {
-    this.fetchIndices();
+    this.fetchMainIndices();
   }
 }
 </script>

@@ -31,6 +31,12 @@ const postApi = {
   // 9. postId로 작성자 이름 찾기
   getPostAuthorByPostId: (postId) => api.get(`/community/posts/author/${postId}`),
 
+  // 10. 게시글 좋아요 개수 가져오기
+  getPostLikeCount: (postId) => api.get(`/community/posts/likes/${postId}`),
+
+  // 11. 게시글 조회수 가져오기
+  getPostViewCount: (postId) => api.get(`/community/posts/view-count/${postId}`),
+
 }
 
 export default postApi

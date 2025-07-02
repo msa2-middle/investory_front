@@ -8,6 +8,7 @@ import FinancialRatioView from '@/views/StockInfo/FinancialRatioView.vue'
 import ProfitRatioView from '@/views/StockInfo/ProfitRatioView.vue'
 import StabilityRatioView from '@/views/StockInfo/StabilityRatioView.vue'
 import GrowthRatioView from '@/views/StockInfo/GrowthRatioView.vue'
+import StockPriceHistoryView from '@/views/StockInfo/StockPriceHistoryView.vue'
 
 import LoginView from '@/views/user/LoginView.vue'
 import SignupView from '@/views/user/SignupView.vue'
@@ -136,6 +137,11 @@ const router = createRouter({
           name: 'community',
           component: PostView,
         },
+        {
+          path: 'history',
+          name: 'stockPriceHistory',
+          component: StockPriceHistoryView,
+        },
       ],
     },
     {
@@ -147,6 +153,22 @@ const router = createRouter({
       path: '/community/posts/:postId',
       name: 'postDetail',
       component: PostDetailView,
+    },
+    // 에러 라우트
+    {
+      path: '/error/404',
+      name: 'error404',
+      component: () => import('@/views/errors/ErrorNotFound.vue'),
+    },
+    {
+      path: '/error/500',
+      name: 'error500',
+      component: () => import('@/views/errors/ServerError.vue'),
+    },
+    // 모든 잘못된 경로 catch → 404 페이지로 리디렉션
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/error/404',
     },
   ],
 })
