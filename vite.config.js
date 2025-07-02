@@ -13,17 +13,21 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // 히스토리 API 폴백 설정
+    historyApiFallback: true,
     proxy: {
       '/main': {
         target: 'http://localhost:8091',
         changeOrigin: true,
         secure: false,
       },
-    },
-    '/stock': {
-      target: 'http://localhost:8091',
-      changeOrigin: true,
-      secure: false,
+      // API 요청만 프록시 (더 구체적인 경로로 변경)
+      '/api': {
+        target: 'http://localhost:8091',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
     },
   },
 })

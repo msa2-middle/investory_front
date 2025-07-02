@@ -8,17 +8,24 @@
       </svg>
       <!-- 읽지 않은 알림 개수 뱃지 -->
       <span v-if="unreadCount > 0" class="notification-badge">{{ unreadCount }}</span>
+      <!-- 연결 상태 표시 -->
+      <div class="connection-status" :class="connectionStatusClass"></div>
     </button>
     <div v-if="dropdownOpen" class="alarm-dropdown-menu">
       <div class="dropdown-header">
         <span class="header-title">알림</span>
-        <button
-          v-if="unreadCount > 0"
-          @click="handleReadAll"
-          class="read-all-btn"
-        >
-          모두 읽음
-        </button>
+        <div class="header-actions">
+          <span class="connection-info" :class="connectionStatusClass">
+            {{ connectionStatusText }}
+          </span>
+          <button
+            v-if="unreadCount > 0"
+            @click="handleReadAll"
+            class="read-all-btn"
+          >
+            모두 읽음
+          </button>
+        </div>
       </div>
       <ul class="alarm-list">
         <li v-if="unreadAlarms.length === 0" class="no-alarms">
@@ -45,16 +52,27 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { EventSourcePolyfill } from 'event-source-polyfill'
 import alarmApi from '@/api/alarmApi.js'
 import '../assets/Alarm.css'
 
+const router = useRouter()
 const token = localStorage.getItem('accessToken')
-const alarms = ref([]) // 전체 알람 리스트 (id, content, isRead, createdAt 포함)
+const alarms = ref([])
 const dropdownOpen = ref(false)
 
-// 읽지 않은 알람만 필터링 (isRead가 integer 타입: 0=안읽음, 1=읽음)
+// SSE 연결 관리
+const eventSource = ref(null)
+const connectionStatus = ref('disconnected') // 'connecting', 'connected', 'disconnected', 'error'
+const reconnectAttempts = ref(0)
+const maxReconnectAttempts = 5
+const reconnectDelay = ref(1000)
+const heartbeatInterval = ref(null)
+const sessionId = ref(null)
+
+// 읽지 않은 알람만 필터링
 const unreadAlarms = computed(() => {
   const filtered = alarms.value.filter(alarm => alarm.isRead === 0 && !alarm.isRemoving).slice(0, 5)
   console.log('unreadAlarms computed:', filtered.length, filtered)
@@ -68,6 +86,27 @@ const unreadCount = computed(() => {
   return count
 })
 
+// 연결 상태에 따른 CSS 클래스
+const connectionStatusClass = computed(() => {
+  return {
+    'status-connecting': connectionStatus.value === 'connecting',
+    'status-connected': connectionStatus.value === 'connected',
+    'status-disconnected': connectionStatus.value === 'disconnected',
+    'status-error': connectionStatus.value === 'error'
+  }
+})
+
+// 연결 상태 텍스트
+const connectionStatusText = computed(() => {
+  switch (connectionStatus.value) {
+    case 'connecting': return '연결 중...'
+    case 'connected': return '실시간 연결됨'
+    case 'disconnected': return '연결 끊김'
+    case 'error': return '연결 오류'
+    default: return '알 수 없음'
+  }
+})
+
 function toggleDropdown() {
   dropdownOpen.value = !dropdownOpen.value
 }
@@ -75,14 +114,13 @@ function toggleDropdown() {
 function addNotification(alarmData) {
   console.log('addNotification 받은 데이터:', alarmData)
 
-  // 새 알람을 맨 앞에 추가 (isRead: integer 타입)
-  // SSE로 받은 데이터의 ID 구조를 통일
   const newAlarm = {
-    id: alarmData.alarmId || alarmData.id, // alarmId가 있으면 사용, 없으면 id 사용
+    id: alarmData.alarmId || alarmData.id,
     content: alarmData.content,
-    isRead: 0, // 0 = 읽지 않음
+    isRead: 0,
     isRemoving: false,
     createdAt: alarmData.createdAt || new Date().toISOString(),
+    targetUrl: alarmData.targetUrl,
     type: alarmData.type,
     user: alarmData.user
   }
@@ -90,15 +128,23 @@ function addNotification(alarmData) {
   console.log('생성된 새 알람:', newAlarm)
   alarms.value.unshift(newAlarm)
 
-  // 전체 알람이 너무 많으면 오래된 것 제거 (선택사항)
+  // 브라우저 알림 표시
+  showBrowserNotification(newAlarm)
+
+  // 전체 알람이 너무 많으면 오래된 것 제거
   if (alarms.value.length > 50) {
     alarms.value = alarms.value.slice(0, 50)
   }
 }
 
-function showAlarm(content) {
-  console.log('새 알람:', content)
-  // 여기에 브라우저 알림이나 토스트 알림 추가 가능
+function showBrowserNotification(alarm) {
+  if (Notification.permission === 'granted') {
+    new Notification(alarm.type || '알림', {
+      body: alarm.content,
+      icon: '/favicon.ico',
+      tag: `alarm-${alarm.id}`
+    })
+  }
 }
 
 async function fetchAlarms() {
@@ -112,24 +158,21 @@ async function fetchAlarms() {
 
     console.log('fetchAlarms 응답:', res.data)
 
-    // 백엔드에서 받은 알람 데이터 구조에 맞게 수정
     alarms.value = (res.data || []).map(alarm => {
       console.log('알람 데이터:', alarm)
       return {
-        id: alarm.alarmId, // alarmId를 id로 매핑
+        id: alarm.alarmId,
         content: alarm.content,
-        isRead: alarm.isRead, // isRead 그대로 사용
+        isRead: alarm.isRead,
         isRemoving: false,
-        createdAt: alarm.createdAt || new Date().toISOString(), // null인 경우 현재 시간 사용
+        createdAt: alarm.createdAt || new Date().toISOString(),
+        targetUrl: alarm.targetUrl,
         type: alarm.type,
         user: alarm.user
       }
     })
 
     console.log('처리된 alarms.value:', alarms.value)
-    console.log('unreadAlarms 개수:', unreadAlarms.value.length)
-    console.log('unreadCount:', unreadCount.value)
-    console.log('첫 번째 알람:', alarms.value[0])
   } catch (err) {
     console.error('알람 로드 실패:', err)
   }
@@ -154,7 +197,7 @@ async function handleReadAll() {
     setTimeout(() => {
       alarms.value = alarms.value.map(alarm => ({
         ...alarm,
-        isRead: 1, // 1 = 읽음
+        isRead: 1,
         isRemoving: false
       }))
     }, 300)
@@ -166,24 +209,19 @@ async function handleReadAll() {
 }
 
 async function handleReadOne(alarm) {
-  if (alarm.isRead === 1) return // 이미 읽은 알람이면 처리하지 않음
+  if (alarm.isRead === 1) return
 
   console.log('=== 알람 클릭 시작 ===')
   console.log('클릭된 알람:', JSON.stringify(alarm, null, 2))
-  console.log('전체 alarms.value 길이:', alarms.value.length)
 
   try {
-    // 먼저 해당 알람에 제거 애니메이션 적용
     const alarmIndex = alarms.value.findIndex(a => a.id === alarm.id)
     console.log('찾은 알람 인덱스:', alarmIndex)
 
     if (alarmIndex !== -1) {
-      console.log('애니메이션 시작 전 상태:', alarms.value[alarmIndex])
       alarms.value[alarmIndex].isRemoving = true
-      console.log('애니메이션 시작 후 상태:', alarms.value[alarmIndex])
     }
 
-    // API 호출 시 실제 백엔드에서 사용하는 ID 사용
     const res = await alarmApi.readOne(alarm.id, {
       headers: {
         'Accept': 'application/json',
@@ -193,31 +231,33 @@ async function handleReadOne(alarm) {
 
     console.log('API 호출 성공:', res)
 
-    // 애니메이션 완료 후 실제로 읽음 처리
     setTimeout(() => {
       if (alarmIndex !== -1) {
-        console.log('읽음 처리 시작')
-        console.log('처리 전 알람 상태:', alarms.value[alarmIndex])
-
-        // Vue 반응성을 확실히 하기 위해 새 객체로 교체
         alarms.value[alarmIndex] = {
           ...alarms.value[alarmIndex],
-          isRead: 1, // 1 = 읽음
+          isRead: 1,
           isRemoving: false
         }
 
-        console.log('처리 후 알람 상태:', alarms.value[alarmIndex])
-        console.log('전체 알람 상태:', alarms.value.map(a => ({ id: a.id, isRead: a.isRead, isRemoving: a.isRemoving })))
-
-        // 강제로 반응성 트리거 (필요한 경우)
         alarms.value = [...alarms.value]
+      }
+
+      if (alarm.targetUrl) {
+        console.log('페이지 이동:', alarm.targetUrl)
+
+        try {
+          dropdownOpen.value = false
+          router.push(alarm.targetUrl)
+        } catch (routerError) {
+          console.error('라우팅 에러:', routerError)
+          alert('해당 페이지로 이동할 수 없습니다.')
+        }
       }
     }, 300)
 
     console.log('=== 알람 클릭 완료 ===')
   } catch (err) {
     console.error('알람 읽음 처리 실패:', err)
-    // 오류 발생 시 애니메이션 상태 되돌리기
     const alarmIndex = alarms.value.findIndex(a => a.id === alarm.id)
     if (alarmIndex !== -1) {
       alarms.value[alarmIndex].isRemoving = false
@@ -242,36 +282,263 @@ function formatTime(dateString) {
   return date.toLocaleDateString()
 }
 
-function initializeSSE() {
-  const eventSource = new EventSourcePolyfill("http://localhost:8091/alarm/sse", {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'text/event-stream',
-      'Cache-Control': 'no-cache'
-    },
-    withCredentials: true
-  })
+// === SSE 연결 관리 ===
 
-  eventSource.addEventListener('alarm', (event) => {
-    console.log('SSE 이벤트 받음:', event.data)
-    const data = JSON.parse(event.data)
-    console.log('파싱된 SSE 데이터:', data)
-    addNotification(data)
-    showAlarm(data.content)
-  })
+function connectSSE() {
+  if (eventSource.value && eventSource.value.readyState === EventSource.OPEN) {
+    console.log('이미 SSE 연결이 활성화되어 있습니다.')
+    return
+  }
 
-  eventSource.onerror = (e) => {
-    console.error('SSE 에러:', e)
+  console.log('SSE 연결 시도 중...')
+  connectionStatus.value = 'connecting'
+
+  try {
+    eventSource.value = new EventSourcePolyfill("http://localhost:8091/alarm/sse", {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'text/event-stream',
+        'Cache-Control': 'no-cache'
+      },
+      withCredentials: true
+    })
+
+    // 연결 성공 이벤트
+    eventSource.value.addEventListener('connected', (event) => {
+      console.log('SSE 연결 성공:', event.data)
+      const data = JSON.parse(event.data)
+      sessionId.value = data.sessionId
+      connectionStatus.value = 'connected'
+      reconnectAttempts.value = 0
+
+      // Heartbeat 시작
+      startHeartbeat()
+    })
+
+    // 알람 수신 이벤트
+    eventSource.value.addEventListener('alarm', (event) => {
+      console.log('SSE 알람 이벤트 받음:', event.data)
+      const data = JSON.parse(event.data)
+      console.log('파싱된 SSE 데이터:', data)
+      addNotification(data)
+    })
+
+    // Heartbeat 이벤트
+    eventSource.value.addEventListener('heartbeat', (event) => {
+      console.debug('Heartbeat 받음:', event.data)
+      sendHeartbeatResponse()
+    })
+
+    // 연결 에러
+    eventSource.value.onerror = (error) => {
+      console.error('SSE 연결 에러:', error)
+      connectionStatus.value = 'error'
+      stopHeartbeat()
+
+      // 재연결 시도
+      handleReconnect()
+    }
+
+    // 연결 종료
+    eventSource.value.onclose = () => {
+      console.log('SSE 연결 종료')
+      connectionStatus.value = 'disconnected'
+      stopHeartbeat()
+    }
+
+  } catch (error) {
+    console.error('SSE 연결 생성 실패:', error)
+    connectionStatus.value = 'error'
   }
 }
 
-onMounted(() => {
-  fetchAlarms()
-  initializeSSE()
+function disconnectSSE() {
+  if (eventSource.value) {
+    eventSource.value.close()
+    eventSource.value = null
+  }
+
+  stopHeartbeat()
+  sessionId.value = null
+  connectionStatus.value = 'disconnected'
+  reconnectAttempts.value = 0
+
+  // 서버에 연결 해제 알림
+  fetch('http://localhost:8091/alarm/unsubscribe', {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    credentials: 'include'
+  }).catch(err => console.warn('연결 해제 알림 실패:', err))
+}
+
+function handleReconnect() {
+  if (reconnectAttempts.value >= maxReconnectAttempts) {
+    console.error('최대 재연결 시도 횟수에 도달했습니다.')
+    connectionStatus.value = 'error'
+    return
+  }
+
+  reconnectAttempts.value++
+  const delay = reconnectDelay.value * Math.pow(2, reconnectAttempts.value - 1) // 지수 백오프
+
+  console.log(`${delay}ms 후 재연결 시도... (시도 ${reconnectAttempts.value}/${maxReconnectAttempts})`)
+
+  setTimeout(() => {
+    if (eventSource.value) {
+      eventSource.value.close()
+    }
+    connectSSE()
+  }, delay)
+}
+
+function startHeartbeat() {
+  // 기존 heartbeat 정리
+  if (heartbeatInterval.value) {
+    clearInterval(heartbeatInterval.value)
+  }
+
+  // 클라이언트에서도 주기적으로 heartbeat 전송
+  heartbeatInterval.value = setInterval(() => {
+    sendHeartbeatResponse()
+  }, 60000) // 1분마다
+}
+
+function stopHeartbeat() {
+  if (heartbeatInterval.value) {
+    clearInterval(heartbeatInterval.value)
+    heartbeatInterval.value = null
+  }
+}
+
+async function sendHeartbeatResponse() {
+  try {
+    await fetch('http://localhost:8091/alarm/heartbeat', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    })
+    console.debug('Heartbeat 응답 전송 완료')
+  } catch (err) {
+    console.debug('Heartbeat 응답 전송 실패:', err)
+  }
+}
+
+// 페이지 가시성 변경 감지
+function handleVisibilityChange() {
+  if (document.hidden) {
+    console.debug('페이지가 숨겨짐 - 연결 유지')
+  } else {
+    console.debug('페이지가 다시 보임 - 연결 상태 확인')
+    if (!eventSource.value || eventSource.value.readyState !== EventSource.OPEN) {
+      connectSSE()
+    }
+  }
+}
+
+// 외부 클릭 감지 함수
+function handleClickOutside(event) {
+  const alarmContainer = document.querySelector('.alarm-container')
+  if (alarmContainer && !alarmContainer.contains(event.target)) {
+    dropdownOpen.value = false
+  }
+}
+
+// 라이프사이클 훅
+onMounted(async () => {
+  // 브라우저 알림 권한 요청
+  if (Notification.permission === 'default') {
+    await Notification.requestPermission()
+  }
+
+  // 알람 데이터 로드
+  await fetchAlarms()
+
+  // SSE 연결
+  connectSSE()
+
+  // 이벤트 리스너 등록
+  document.addEventListener('click', handleClickOutside)
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+})
+
+onUnmounted(() => {
+  // 정리 작업
+  document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+  disconnectSSE()
 })
 </script>
 
 <style scoped>
+/* 연결 상태 표시 스타일 */
+.connection-status {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
 
+.status-connecting {
+  background-color: #fbbf24; /* 노란색 */
+  animation: pulse 2s infinite;
+}
+
+.status-connected {
+  background-color: #10b981; /* 초록색 */
+}
+
+.status-disconnected {
+  background-color: #6b7280; /* 회색 */
+}
+
+.status-error {
+  background-color: #ef4444; /* 빨간색 */
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.connection-info {
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-right: 8px;
+}
+
+.connection-info.status-connected {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.connection-info.status-connecting {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.connection-info.status-disconnected,
+.connection-info.status-error {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+}
+
+.alarm-container {
+  position: relative;
+}
 </style>
-
