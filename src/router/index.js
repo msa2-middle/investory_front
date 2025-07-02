@@ -196,7 +196,8 @@ const router = createRouter({
       path: '/admin/comments/:id',
       name: 'adminCommentDetail',
       component: () => import('@/views/admin/AdminCommentDetail.vue'),
-      meta: { requiresAdmin: true },
+      meta: { requiresAdmin: true }
+    },
     // 에러 라우트
     {
       path: '/error/404',
