@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const publicApi = axios.create({
-  baseURL: 'http://localhost:8091',
+  baseURL: '/api', // 프록시를 통해 백엔드로 전달
   headers: {
     'Content-Type': 'application/json',
   },
