@@ -70,6 +70,9 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import commentApi from '@/api/commentApi.js'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const props = defineProps({
   postId: {
@@ -88,6 +91,19 @@ const comments = ref([])
 const newComment = ref('')
 const isLoading = ref(false)
 const isSubmitting = ref(false)
+
+// 로그인 체크 함수
+function checkAuth() {
+  const token = localStorage.getItem('accessToken')
+
+  if (!token) {
+    alert('로그인 후 사용가능합니다.')
+    router.push('/login')
+    return false
+  }
+
+  return true
+}
 
 // 댓글 목록 조회
 async function fetchComments() {
@@ -134,6 +150,9 @@ async function fetchComments() {
 
 // 댓글 작성
 async function addComment() {
+
+  if (!checkAuth()) return
+
   if (!newComment.value.trim()) return
 
   isSubmitting.value = true
@@ -182,6 +201,9 @@ function cancelEdit(comment) {
 
 // 댓글 수정 저장
 async function saveEdit(comment) {
+
+  if (!checkAuth()) return
+
   if (!comment.editContent.trim()) return
 
   try {
@@ -200,6 +222,9 @@ async function saveEdit(comment) {
 
 // 댓글 삭제
 async function deleteComment(comment) {
+
+  if (!checkAuth()) return
+
   if (!confirm('댓글을 삭제하시겠습니까?')) return
 
   try {
@@ -221,6 +246,9 @@ async function deleteComment(comment) {
 
 // 댓글 좋아요/좋아요 취소 토글 (토글 API 방식)
 async function toggleCommentLike(comment) {
+
+  if (!checkAuth()) return
+
   if (comment.likeLoading) return
 
   comment.likeLoading = true

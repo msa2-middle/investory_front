@@ -87,6 +87,19 @@ const error = ref(null)
 const stockName = ref('')
 const stockPrice = ref('')
 
+// 로그인 체크 함수
+function checkAuth() {
+  const token = localStorage.getItem('accessToken')
+
+  if (!token) {
+    alert('로그인 후 사용가능합니다.')
+    router.push('/login')
+    return false
+  }
+
+  return true
+}
+
 // 게시글 목록 조회
 async function fetchPosts() {
   isLoading.value = true
@@ -158,6 +171,8 @@ async function fetchPosts() {
 
 // 게시글 작성
 async function addPost() {
+  if (!checkAuth()) return
+
   if (!newPost.value.title || !newPost.value.content) return
 
   try {
@@ -198,6 +213,8 @@ async function addPost() {
 
 // 좋아요/좋아요 취소 토글
 async function toggleLike(post) {
+  if (!checkAuth()) return
+
   if (post.likeLoading) return
   post.likeLoading = true
   try {

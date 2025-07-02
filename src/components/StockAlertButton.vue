@@ -1,8 +1,24 @@
 <template>
-  <button class="alert-btn" @click="$emit('open')">주가 설정</button>
+  <button class="alert-btn" @click="handleClickStockAlertSetting">주가 설정</button>
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const emit = defineEmits(['open'])
+
+function handleClickStockAlertSetting() {
+  const token = localStorage.getItem('accessToken')
+
+  if (!token) {
+    alert('로그인 후 사용가능합니다.')
+    router.push('/login')
+    return
+  }
+
+  emit('open')
+}
 </script>
 
 <style scoped>
@@ -11,7 +27,6 @@
   background: transparent;
   border: none;
   cursor: pointer;
-
 
   color: #94A3B8;
   font-size: 13px;

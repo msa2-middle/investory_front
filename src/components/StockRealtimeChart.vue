@@ -125,6 +125,7 @@
     <StockAlertModal
       :show="isCreateModalOpen"
       :stock-code="selectedStock?.code"
+      :stock-name="selectedStock?.name"
       @close="isCreateModalOpen = false"
       @save="createStockAlert"
     />

@@ -2,7 +2,7 @@
   <div v-if="show" class="modal-overlay" @click="handleOverlayClick">
     <div class="modal-content" @click.stop>
       <div class="modal-header">
-        <h3 class="modal-title">📈 {{ stockCode }} 주가 알림 설정</h3>
+        <h3 class="modal-title">📈 {{ stockName || stockCode }} 주가 알림 설정</h3>
         <button type="button" class="close-btn" @click="$emit('close')">&times;</button>
       </div>
 
@@ -41,9 +41,10 @@ import { ref, watch, toRefs, onMounted, onUnmounted } from 'vue'
 const props = defineProps({
   show: Boolean,
   stockCode: String,
+  stockName: String,
 })
 
-const { show, stockCode } = toRefs(props)
+const { show, stockCode, stockName } = toRefs(props)
 const emit = defineEmits(['close', 'save'])
 
 const targetPrice = ref('')
@@ -127,7 +128,7 @@ onUnmounted(() => {
   background: #2a2a2a;
   border-radius: 16px;
   padding: 28px;
-  width: 420px;
+  width: 500px;
   max-width: 90vw;
   max-height: 90vh;
   color: white;
