@@ -161,12 +161,27 @@ function formatDate(dateString) {
   }
 }
 
+// 로그인 체크 함수
+function checkAuth() {
+  const token = localStorage.getItem('accessToken')
+
+  if (!token) {
+    alert('로그인 후 사용가능합니다.')
+    router.push('/login')
+    return false
+  }
+
+  return true
+}
+
 // 게시글 수정
 async function onEdit() {
   if (!editTitle.value.trim() || !editContent.value.trim()) {
     alert('제목과 내용을 모두 입력해주세요.')
     return
   }
+
+  if (!checkAuth()) return
 
   try {
     await postApi.updatePost(postId, {
@@ -192,6 +207,9 @@ async function onEdit() {
 
 // 게시글 삭제
 async function onDelete() {
+
+  if (!checkAuth()) return
+
   if (!confirm('정말 삭제하시겠습니까?')) return
 
   try {
