@@ -8,8 +8,7 @@
       </svg>
       <!-- 읽지 않은 알림 개수 뱃지 -->
       <span v-if="unreadCount > 0" class="notification-badge">{{ unreadCount }}</span>
-      <!-- 연결 상태 표시 -->
-      <div class="connection-status" :class="connectionStatusClass"></div>
+      <!-- 연결 상태 표시 점 제거됨 -->
     </button>
     <div v-if="dropdownOpen" class="alarm-dropdown-menu">
       <div class="dropdown-header">
@@ -476,39 +475,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 연결 상태 표시 스타일 */
-.connection-status {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  transition: background-color 0.3s ease;
-}
-
-.status-connecting {
-  background-color: #fbbf24; /* 노란색 */
-  animation: pulse 2s infinite;
-}
-
-.status-connected {
-  background-color: #10b981; /* 초록색 */
-}
-
-.status-disconnected {
-  background-color: #6b7280; /* 회색 */
-}
-
-.status-error {
-  background-color: #ef4444; /* 빨간색 */
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
+/* 연결 상태 관련 스타일 제거됨 */
 
 .connection-info {
   font-size: 0.75rem;
