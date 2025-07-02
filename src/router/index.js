@@ -180,6 +180,18 @@ const router = createRouter({
       component: () => import('@/views/admin/PostDetailView.vue'),
       meta: { requiresAdmin: true },
     },
+    {
+      path: '/admin/comments',
+      name: 'adminComments',
+      component: () => import('@/views/admin/AdminCommentList.vue'),
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/comments/:id',
+      name: 'adminCommentDetail',
+      component: () => import('@/views/admin/AdminCommentDetail.vue'),
+      meta: { requiresAdmin: true },
+    },
   ],
 })
 

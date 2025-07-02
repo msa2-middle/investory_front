@@ -10,9 +10,9 @@
         <h2>게시글 관리</h2><br><br><br>
         <p>전체 게시글 조회, 게시글 수정/삭제</p>
       </router-link>
-      <router-link to="/admin/comments" class="menu-card disabled">
+      <router-link to="/admin/comments" class="menu-card">
         <h2>댓글 관리</h2><br><br><br>
-        <p>곧 추가 예정</p>
+        <p>댓글 목록 조회, 댓글 수정/삭제</p>
       </router-link>
     </div>
   </div>

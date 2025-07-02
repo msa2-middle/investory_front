@@ -20,6 +20,18 @@ const adminApi = {
     api.patch(`/api/admin/posts/${postId}`, data),
 
   deletePost: (postId) => api.delete(`/api/admin/posts/${postId}`),
+
+  // ==== COMMENTS ====
+  getAllComments: () => api.get('/api/admin/comments'),
+
+  getCommentById: (commentId) =>
+    api.get(`/api/admin/comments/${commentId}`),
+
+  updateComment: (commentId, data) =>
+    api.patch(`/api/admin/comments/${commentId}`, data),
+
+  deleteComment: (commentId) =>
+    api.delete(`/api/admin/comments/${commentId}`),
 }
 
 export default adminApi
