@@ -143,7 +143,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import api from '@/api/api.js';
 import '../assets/StockRealtimeChart.css';
 import StockAlertButton from '@/components/StockAlertButton.vue';
 import StockAlertModal from '@/components/StockAlertModal.vue';
@@ -251,8 +251,7 @@ export default {
       this.isLoading = true;
       this.error = null;
       try {
-        const baseUrl = 'http://localhost:8091/main';
-        const response = await axios.get(`${baseUrl}/${tabId}?page=${page}`);
+        const response = await api.get(`/main/${tabId}?page=${page}`);
         this.stockData = response.data.content || [];
         this.totalPages = response.data.totalPages || 1;
         this.currentPage = response.data.number || 0;
