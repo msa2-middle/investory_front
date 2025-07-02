@@ -16,25 +16,72 @@
         </select>
       </label>
 
+      <!-- ✅ 차트 위에 설명 툴팁 범례 추가
+      <div class="chart-legend">
+        <div class="legend-item" v-for="item in legendList" :key="item.label">
+          <span class="color-box" :style="{ backgroundColor: item.color }"></span>
+          <span class="tooltip-wrapper">
+            {{ item.label }}
+            <span class="tooltip">{{ item.description }}</span>
+          </span>
+        </div>
+      </div> -->
+
+      <BarChart v-if="chartData" :chart-data="chartData" />
+
       <!-- ✅ 자산/부채/자본 시각화 -->
       <BarChart v-if="chartData" :chart-data="chartData" />
 
-      <!-- ✅ 테이블 (컨테이너로 감싸기) -->
+      <!-- ✅ 테이블 (툴팁 포함) -->
       <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>결산<br />년월</th>
-              <th>유동<br />자산</th>
-              <th>고정<br />자산</th>
-              <th>자산<br />총계</th>
-              <th>유동<br />부채</th>
-              <th>고정<br />부채</th>
-              <th>부채<br />총계</th>
-              <th>자본금</th>
-              <th>자본<br />잉여금</th>
-              <th>이익<br />잉여금</th>
-              <th>자본<br />총계</th>
+              <th>
+                <TooltipHeader label="결산<br />년월" desc="해당 재무제표의 기준 연월입니다." />
+              </th>
+              <th>
+                <TooltipHeader label="유동<br />자산" desc="1년 내 현금화 가능한 자산입니다." />
+              </th>
+              <th>
+                <TooltipHeader label="고정<br />자산" desc="1년 이상 보유하는 장기 자산입니다." />
+              </th>
+              <th>
+                <TooltipHeader label="자산<br />총계" desc="유동자산 + 고정자산의 총합입니다." />
+              </th>
+              <th>
+                <TooltipHeader label="유동<br />부채" desc="1년 내 갚아야 할 부채입니다." />
+              </th>
+              <th>
+                <TooltipHeader
+                  label="고정<br />부채"
+                  desc="1년 이상 장기적으로 갚아야 할 부채입니다."
+                />
+              </th>
+              <th>
+                <TooltipHeader label="부채<br />총계" desc="유동부채 + 고정부채의 총합입니다." />
+              </th>
+              <th>
+                <TooltipHeader label="자본금" desc="회사가 설립 시 발행한 주식의 금액입니다." />
+              </th>
+              <th>
+                <TooltipHeader
+                  label="자본<br />잉여금"
+                  desc="주식 발행가 - 액면가의 초과분입니다."
+                />
+              </th>
+              <th>
+                <TooltipHeader
+                  label="이익<br />잉여금"
+                  desc="누적된 순이익에서 배당 등을 제외한 금액입니다."
+                />
+              </th>
+              <th>
+                <TooltipHeader
+                  label="자본<br />총계"
+                  desc="회사의 순자산 총액입니다. (자산 - 부채)"
+                />
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -67,6 +114,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import stockApi from '@/api/stockApi'
 import BarChart from '@/components/BarChart.vue'
+import TooltipHeader from '@/components/TooltipHeader.vue'
 
 const route = useRoute()
 const loading = ref(true)
@@ -256,5 +304,56 @@ select:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.chart-legend {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: help;
+}
+
+.color-box {
+  width: 12px;
+  height: 12px;
+  margin-right: 6px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.tooltip-wrapper {
+  position: relative;
+}
+
+.tooltip {
+  visibility: hidden;
+  background-color: #374151;
+  color: #fff;
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 100;
+  top: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.tooltip-wrapper:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
 }
 </style>

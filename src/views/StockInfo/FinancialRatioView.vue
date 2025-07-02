@@ -24,16 +24,57 @@
         <table>
           <thead>
             <tr>
-              <th>결산<br />년월</th>
-              <th>매출액<br />증가율</th>
-              <th>영업이익<br />증가율</th>
-              <th>순이익<br />증가율</th>
-              <th>ROE</th>
-              <th>EPS</th>
-              <th>SPS</th>
-              <th>BPS</th>
-              <th>유보<br />비율</th>
-              <th>부채<br />비율</th>
+              <th>
+                <TooltipHeader label="결산<br />년월" desc="해당 재무비율의 기준 연월입니다." />
+              </th>
+              <th>
+                <TooltipHeader
+                  label="매출액<br />증가율"
+                  desc="전년도 대비 매출액의 증가 비율입니다."
+                />
+              </th>
+              <th>
+                <TooltipHeader
+                  label="영업이익<br />증가율"
+                  desc="전년도 대비 영업이익의 증가 비율입니다."
+                />
+              </th>
+              <th>
+                <TooltipHeader
+                  label="순이익<br />증가율"
+                  desc="전년도 대비 순이익의 증가 비율입니다."
+                />
+              </th>
+              <th>
+                <TooltipHeader
+                  label="ROE"
+                  desc="자기자본 대비 순이익의 비율입니다. (수익성 지표)"
+                />
+              </th>
+              <th>
+                <TooltipHeader label="EPS" desc="1주당 순이익 (Earnings Per Share)을 의미합니다." />
+              </th>
+              <th>
+                <TooltipHeader label="SPS" desc="1주당 매출액 (Sales Per Share)을 의미합니다." />
+              </th>
+              <th>
+                <TooltipHeader
+                  label="BPS"
+                  desc="1주당 순자산 (Book-value Per Share)을 의미합니다."
+                />
+              </th>
+              <th>
+                <TooltipHeader
+                  label="유보<br />비율"
+                  desc="이익잉여금이 자본금 대비 얼마나 쌓였는지를 나타냅니다."
+                />
+              </th>
+              <th>
+                <TooltipHeader
+                  label="부채<br />비율"
+                  desc="자산 대비 부채의 비율입니다. 재무 건전성을 나타냅니다."
+                />
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -65,6 +106,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import stockApi from '@/api/stockApi'
 import BarChart from '@/components/BarChart.vue'
+import TooltipHeader from '@/components/TooltipHeader.vue'
 
 const route = useRoute()
 const loading = ref(true)

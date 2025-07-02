@@ -24,13 +24,39 @@
       <table>
         <thead>
           <tr>
-            <th>결산 년월</th>
-            <th>매출액 증가율</th>
-            <th>영업 이익 증가율</th>
-            <th>자기자본 증가율</th>
-            <th>총자산 증가율</th>
+            <th>
+              <TooltipHeader
+                label="결산<br />년월"
+                desc="해당 항목이 기준하는 회계 연도 및 월입니다."
+              />
+            </th>
+            <th>
+              <TooltipHeader
+                label="매출액<br />증가율"
+                desc="전년도 대비 매출액이 얼마나 증가했는지를 나타냅니다."
+              />
+            </th>
+            <th>
+              <TooltipHeader
+                label="영업 이익<br />증가율"
+                desc="전년도 대비 영업 이익(주된 사업의 수익성)의 증가율입니다."
+              />
+            </th>
+            <th>
+              <TooltipHeader
+                label="자기자본<br />증가율"
+                desc="전년도 대비 자기자본(자산 - 부채)의 증가율입니다."
+              />
+            </th>
+            <th>
+              <TooltipHeader
+                label="총자산<br />증가율"
+                desc="회사의 총자산이 전년도보다 얼마나 증가했는지를 보여줍니다."
+              />
+            </th>
           </tr>
         </thead>
+
         <tbody>
           <tr v-for="item in filteredRatios" :key="item.stacYymm">
             <td>{{ item.stacYymm }}</td>
@@ -54,6 +80,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import stockApi from '@/api/stockApi'
 import BarChart from '@/components/BarChart.vue'
+import TooltipHeader from '@/components/TooltipHeader.vue'
 
 const route = useRoute()
 const loading = ref(true)
