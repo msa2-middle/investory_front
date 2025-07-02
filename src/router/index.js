@@ -21,6 +21,8 @@ import PostView from '@/views/post/PostView.vue'
 import PostDetailView from '@/views/post/PostDetailView.vue'
 import StockLayout from '@/views/StockInfo/StockLayout.vue'
 
+import { useAuthStore } from '@/stores/auth'
+
 const PriceView = {
   template:
     '<div style="text-align:center;padding:40px 0;font-size:1.5rem;">가격 차트/정보 영역(임시)</div>',
@@ -154,6 +156,47 @@ const router = createRouter({
       name: 'postDetail',
       component: PostDetailView,
     },
+    {
+      path: '/admin',
+      name: 'adminHome',
+      component: () => import('@/views/admin/AdminHomeView.vue'),
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/admin/users',
+      name: 'adminUsers',
+      component: () => import('@/views/admin/AdminUserList.vue'),
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/admin/users/:id',
+      name: 'adminUserDetail',
+      component: () => import('@/views/admin/UserDetailView.vue'),
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/posts',
+      name: 'adminPosts',
+      component: () => import('@/views/admin/PostsListView.vue'),
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/posts/:id',
+      name: 'adminPostDetail',
+      component: () => import('@/views/admin/PostDetailView.vue'),
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/comments',
+      name: 'adminComments',
+      component: () => import('@/views/admin/AdminCommentList.vue'),
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/comments/:id',
+      name: 'adminCommentDetail',
+      component: () => import('@/views/admin/AdminCommentDetail.vue'),
+      meta: { requiresAdmin: true },
     // 에러 라우트
     {
       path: '/error/404',
@@ -171,6 +214,15 @@ const router = createRouter({
       redirect: '/error/404',
     },
   ],
+})
+
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+
+  if (to.meta.requiresAdmin && authStore.role !== 'ADMIN') {
+    return next('/')
+  }
+  next()
 })
 
 export default router

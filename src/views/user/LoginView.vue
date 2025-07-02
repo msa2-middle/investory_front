@@ -56,8 +56,14 @@ async function login() {
     localStorage.setItem('userName', response.data.name)
     localStorage.setItem('refreshToken', refreshToken)
 
+ const payload = JSON.parse(atob(token.split('.')[1]));
+console.log("🔥 JWT payload:", payload);
+console.log("🔥 role in payload:", payload.role);
+console.log("🔥 authStore.role:", authStore.role);
+
     alert('로그인 성공!')
-    router.push('/')
+    // role 확인 후 분기
+    window.location.href = authStore.role === 'ADMIN' ? '/admin' : '/'
     }catch (error) {
     const message = error.response?.data?.message || '로그인 실패: 알 수 없는 오류'
     alert(message)

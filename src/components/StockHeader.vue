@@ -355,7 +355,7 @@ function goToStockDetail(stock) {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: none;
+  border: 1px solid #374151;
 }
 
 .btn-signup {
