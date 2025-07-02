@@ -1,16 +1,5 @@
 <template>
   <div class="stock-realtime-view">
-    <!-- 헤더 -->
-    <div class="header">
-      <h2>실시간 시세</h2>
-      <button class="close-btn" @click="$router.go(-1)">×</button>
-    </div>
-
-    <!-- 탭 -->
-    <div class="tabs">
-      <button class="tab active">실시간</button>
-    </div>
-
     <!-- 연결 상태 -->
     <div class="connection-status">
       <div v-if="!connected" class="status disconnected">
@@ -330,18 +319,6 @@ function getVolumeClass(volume) {
   margin: 0;
   font-size: 18px;
   font-weight: bold;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #666;
-}
-
-.close-btn:hover {
-  color: #000;
 }
 
 .tabs {

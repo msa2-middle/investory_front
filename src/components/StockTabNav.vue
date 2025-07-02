@@ -4,7 +4,7 @@
       :to="`/stock/${stockId}/price`"
       class="tab-btn"
       :class="{ active: isActive('price') }"
-      >가격/호가</router-link
+      >실시간 체결가</router-link
     >
     <router-link
       :to="`/stock/${stockId}/history`"
