@@ -79,7 +79,13 @@
         <div v-if="myPosts.length > 0">
           <ul class="list-group">
             <li class="list-group-item" v-for="post in myPosts.slice(0, 5)" :key="post.postId">
-              {{ post.title }}
+              <router-link
+                :to="`/community/posts/${post.postId}`"
+                class="text-dark no-underline"
+                style="font-weight: bold;"
+              >
+                {{ post.title }}
+              </router-link>
             </li>
           </ul>
 
@@ -107,8 +113,14 @@
     <div v-if="myComments.length > 0">
       <ul class="list-group">
         <li class="list-group-item" v-for="comment in myComments.slice(0, 5)" :key="comment.commentId">
-          {{ comment.content }}
-        </li>
+  <router-link
+    :to="`/community/posts/${comment.postId}`"
+    class="text-dark no-underline"
+    style="font-weight: bold;"
+  >
+    {{ comment.content }}
+  </router-link>
+</li>
       </ul>
       <div v-if="myComments.length > 5" class="text-center mt-3">
         <router-link to="/my-comments" class="text-muted" style="font-weight: bold; text-decoration: none;">
@@ -130,8 +142,18 @@
 
     <div v-if="likedPosts.length > 0">
       <ul class="list-group">
-        <li class="list-group-item" v-for="post in likedPosts.slice(0, 5)" :key="post.postId">
-          {{ post.title }}
+        <li
+          class="list-group-item"
+          v-for="post in likedPosts.slice(0, 5)"
+          :key="post.postId"
+        >
+          <router-link
+            :to="`/community/posts/${post.postId}`"
+            class="text-dark no-underline"
+            style="font-weight: bold;"
+          >
+            {{ post.title }}
+          </router-link>
         </li>
       </ul>
       <div v-if="likedPosts.length > 5" class="text-center mt-3">
@@ -154,8 +176,18 @@
 
     <div v-if="likedComments.length > 0">
       <ul class="list-group">
-        <li class="list-group-item" v-for="comment in likedComments.slice(0, 5)" :key="comment.commentId">
-          {{ comment.content }}
+        <li
+          class="list-group-item"
+          v-for="comment in likedComments.slice(0, 5)"
+          :key="comment.commentId"
+        >
+          <router-link
+            :to="`/community/posts/${comment.postId}`"
+            class="text-dark no-underline"
+            style="font-weight: bold;"
+          >
+            {{ comment.content }}
+          </router-link>
         </li>
       </ul>
       <div v-if="likedComments.length > 5" class="text-center mt-3">

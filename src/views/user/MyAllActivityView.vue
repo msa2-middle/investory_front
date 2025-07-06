@@ -2,7 +2,7 @@
   <div class="container py-5 text-white">
     <h2 class="mb-5 text-center">내 활동 전체 보기</h2>
 
-    <!-- Tabs -->
+    <!-- 탭 -->
     <ul class="nav nav-tabs mb-4">
       <li class="nav-item" v-for="tab in tabs" :key="tab.key">
         <button
@@ -15,7 +15,7 @@
       </li>
     </ul>
 
-    <!-- 검색창 추가 -->
+    <!-- 검색창 -->
     <div class="mb-3">
       <input
         v-model="searchText"
@@ -26,7 +26,10 @@
     </div>
 
     <!-- 내가 작성한 게시글 -->
-    <div v-if="activeTab === 'myPosts'" class="bg-white text-dark p-3 rounded">
+    <div
+      v-if="activeTab === 'myPosts'"
+      class="bg-white text-dark p-3 rounded"
+    >
       <Vue3Datatable
         :rows="myPosts"
         :columns="postColumns"
@@ -36,11 +39,23 @@
         :search="searchText"
         skin="bh-table-hover"
         :sortable="true"
-      />
+      >
+        <template #actions="data">
+          <router-link
+            :to="`/community/posts/${data.value.postId}`"
+            class="btn btn-sm btn-primary"
+          >
+            상세
+          </router-link>
+        </template>
+      </Vue3Datatable>
     </div>
 
     <!-- 내가 작성한 댓글 -->
-    <div v-else-if="activeTab === 'myComments'" class="bg-white text-dark p-3 rounded">
+    <div
+      v-else-if="activeTab === 'myComments'"
+      class="bg-white text-dark p-3 rounded"
+    >
       <Vue3Datatable
         :rows="myComments"
         :columns="commentColumns"
@@ -50,11 +65,23 @@
         :search="searchText"
         skin="bh-table-hover"
         :sortable="true"
-      />
+      >
+        <template #actions="data">
+          <router-link
+            :to="`/community/posts/${data.value.postId}`"
+            class="btn btn-sm btn-primary"
+          >
+            상세
+          </router-link>
+        </template> 
+      </Vue3Datatable>
     </div>
 
     <!-- 좋아요한 게시글 -->
-    <div v-else-if="activeTab === 'likedPosts'" class="bg-white text-dark p-3 rounded">
+    <div
+      v-else-if="activeTab === 'likedPosts'"
+      class="bg-white text-dark p-3 rounded"
+    >
       <Vue3Datatable
         :rows="likedPosts"
         :columns="postColumns"
@@ -64,11 +91,23 @@
         :search="searchText"
         skin="bh-table-hover"
         :sortable="true"
-      />
+      >
+        <template #actions="data">
+          <router-link
+            :to="`/community/posts/${data.value.postId}`"
+            class="btn btn-sm btn-primary"
+          >
+            상세
+          </router-link>
+        </template>
+      </Vue3Datatable>
     </div>
 
     <!-- 좋아요한 댓글 -->
-    <div v-else-if="activeTab === 'likedComments'" class="bg-white text-dark p-3 rounded">
+    <div
+      v-else-if="activeTab === 'likedComments'"
+      class="bg-white text-dark p-3 rounded"
+    >
       <Vue3Datatable
         :rows="likedComments"
         :columns="commentColumns"
@@ -78,16 +117,28 @@
         :search="searchText"
         skin="bh-table-hover"
         :sortable="true"
-      />
+      >
+        <template #actions="data">
+          <router-link
+            :to="`/community/posts/${data.value.postId}`"
+            class="btn btn-sm btn-primary"
+          >
+            상세
+          </router-link>
+        </template>
+      </Vue3Datatable>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import Vue3Datatable from '@bhplugin/vue3-datatable'
 import '@bhplugin/vue3-datatable/dist/style.css'
 import userApi from '@/api/userApi'
+
+const router = useRouter()
 
 const activeTab = ref('myPosts')
 const rowsPerPage = ref(5)
@@ -108,29 +159,15 @@ const likedPosts = ref([])
 const likedComments = ref([])
 
 const postColumns = [
-  {
-    title: '제목',
-    field: 'title',
-    sortable: true,
-  },
-  {
-    title: '작성일',
-    field: 'createdAt',
-    sortable: true,
-  },
+  { title: '제목', field: 'title', sortable: true },
+  { title: '작성일', field: 'createdAt', sortable: true },
+  { title: '액션', field: 'actions', slot: true, width: '80px' },
 ]
 
 const commentColumns = [
-  {
-    title: '내용',
-    field: 'content',
-    sortable: true,
-  },
-  {
-    title: '작성일',
-    field: 'createdAt',
-    sortable: true,
-  },
+  { title: '내용', field: 'content', sortable: true },
+  { title: '작성일', field: 'createdAt', sortable: true },
+  { title: '액션', field: 'actions', slot: true, width: '80px' },
 ]
 
 onMounted(async () => {
@@ -141,21 +178,27 @@ onMounted(async () => {
     const res4 = await userApi.getMyLikedComments()
 
     myPosts.value = res1.data.map((p) => ({
+      postId: p.postId,
       title: p.title,
       createdAt: formatDate(p.createdAt || p.created_at),
     }))
 
     myComments.value = res2.data.map((c) => ({
+      commentId: c.commentId,
+      postId: c.postId, 
       content: c.content,
       createdAt: formatDate(c.createdAt || c.created_at),
     }))
 
     likedPosts.value = res3.data.map((p) => ({
+      postId: p.postId,
       title: p.title,
       createdAt: formatDate(p.createdAt || p.created_at),
     }))
 
     likedComments.value = res4.data.map((c) => ({
+      commentId: c.commentId,
+      postId: c.postId, 
       content: c.content,
       createdAt: formatDate(c.createdAt || c.created_at),
     }))
